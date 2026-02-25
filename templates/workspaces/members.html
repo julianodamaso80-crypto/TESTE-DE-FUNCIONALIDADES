@@ -1,0 +1,38 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Members{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-lg font-semibold text-white">Workspace Members</h2>
+      <span class="text-xs text-gray-500">
+        {{ members.count }}/{{ request.workspace.max_members }} members
+      </span>
+    </div>
+
+    <div class="space-y-3">
+      {% for membership in members %}
+      <div class="flex items-center justify-between py-3 {% if not forloop.last %}border-b border-gray-800{% endif %}">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-600 to-blue-600
+                      flex items-center justify-center text-white text-xs font-bold">
+            {{ membership.user.initials }}
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-200">{{ membership.user.display_name }}</p>
+            <p class="text-xs text-gray-500">{{ membership.user.email }}</p>
+          </div>
+        </div>
+        <span class="text-xs text-gray-400 capitalize px-2 py-1 bg-gray-800 rounded">
+          {{ membership.role }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

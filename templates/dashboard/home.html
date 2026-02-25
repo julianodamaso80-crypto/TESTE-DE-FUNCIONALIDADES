@@ -1,0 +1,137 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'testing:new_test' %}" class="btn-primary text-sm">
+  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+  </svg>
+  New Test
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm text-gray-400">Test Runs</span>
+      <div class="w-8 h-8 rounded-lg bg-primary-900/40 flex items-center justify-center">
+        <svg class="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+        </svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-white">{{ stats.total_runs|default:'0' }}</p>
+    <p class="text-xs text-gray-500 mt-1">este mês</p>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm text-gray-400">Pass Rate</span>
+      <div class="w-8 h-8 rounded-lg bg-emerald-900/40 flex items-center justify-center">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-white">{{ stats.pass_rate|default:'—' }}</p>
+    <p class="text-xs text-gray-500 mt-1">média dos últimos 30 dias</p>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm text-gray-400">Projetos</span>
+      <div class="w-8 h-8 rounded-lg bg-blue-900/40 flex items-center justify-center">
+        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+        </svg>
+      </div>
+    </div>
+    <p class="text-3xl font-bold text-white">{{ stats.total_projects|default:'0' }}</p>
+    <p class="text-xs text-gray-500 mt-1">projetos ativos</p>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-sm text-gray-400">Plano</span>
+      <div class="w-8 h-8 rounded-lg bg-amber-900/40 flex items-center justify-center">
+        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+    </div>
+    <p class="text-2xl font-bold text-white capitalize">{{ request.workspace.plan|default:'free' }}</p>
+    <p class="text-xs text-primary-400 mt-1 cursor-pointer hover:underline">
+      {% if request.workspace.plan == 'free' %}Upgrade para Pro &rarr;{% else %}Gerenciar plano{% endif %}
+    </p>
+  </div>
+
+</div>
+
+<!-- Recent Runs or Empty State -->
+{% if recent_runs %}
+<div class="card">
+  <h2 class="text-base font-semibold text-white mb-4">Recent Test Runs</h2>
+  <div class="space-y-2">
+    {% for run in recent_runs %}
+    <a href="{% url 'testing:run_detail' run_id=run.id %}"
+       class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-800/50 transition-colors">
+      <div class="flex items-center gap-3 min-w-0">
+        {% if run.status == 'passed' %}
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></div>
+        {% elif run.status == 'failed' %}
+          <div class="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0"></div>
+        {% elif run.status == 'pending' %}
+          <div class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></div>
+        {% else %}
+          <div class="w-2.5 h-2.5 rounded-full bg-gray-500 shrink-0"></div>
+        {% endif %}
+        <div class="min-w-0">
+          <p class="text-sm font-medium text-gray-200 truncate">{{ run.project.name }}</p>
+          <p class="text-xs text-gray-500">{{ run.created_at|timesince }} ago</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        {% if run.status != 'pending' %}
+        <span class="text-sm font-semibold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+          {{ run.pass_rate }}%
+        </span>
+        {% endif %}
+        <span class="px-2 py-0.5 rounded text-xs font-medium
+                     {% if run.status == 'passed' %}bg-emerald-900/40 text-emerald-300
+                     {% elif run.status == 'failed' %}bg-red-900/40 text-red-300
+                     {% elif run.status == 'pending' %}bg-amber-900/40 text-amber-300
+                     {% else %}bg-gray-800 text-gray-400{% endif %}">
+          {{ run.status|title }}
+        </span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="card text-center py-16">
+  <div class="w-16 h-16 rounded-2xl bg-primary-900/30 border border-primary-800/50
+              flex items-center justify-center mx-auto mb-6">
+    <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+    </svg>
+  </div>
+  <h2 class="text-xl font-bold text-white mb-3">Crie seu primeiro teste</h2>
+  <p class="text-gray-400 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+    Insira a URL da sua aplicação e nossa IA irá gerar casos de teste automaticamente em segundos.
+  </p>
+  <a href="{% url 'testing:new_test' %}" class="btn-primary mx-auto inline-flex">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    Criar primeiro teste
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-950 flex items-center justify-center py-12 px-4">
+  <div class="max-w-md w-full text-center">
+
+    <!-- Logo -->
+    <div class="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-8">
+      <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+
+    <h1 class="text-3xl font-bold text-white mb-3">Bem-vindo ao SpriteTest!</h1>
+    <p class="text-gray-400 mb-8 leading-relaxed">
+      Sua conta foi criada com sucesso. Seu workspace pessoal já está pronto.
+      Vamos começar a testar?
+    </p>
+
+    <div class="card text-left mb-6">
+      <h3 class="font-semibold text-white mb-3">O que você pode fazer:</h3>
+      <ul class="space-y-2 text-sm text-gray-400">
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Criar projetos de teste e inserir URLs para testar
+        </li>
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          IA gera casos de teste automaticamente
+        </li>
+        <li class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Convidar membros para seu workspace
+        </li>
+      </ul>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn-primary w-full py-3 text-base">
+        Ir para o Dashboard
+        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+        </svg>
+      </button>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

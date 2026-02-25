@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-950 flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col min-h-screen hidden md:flex">
+
+    <!-- Logo + Workspace switcher -->
+    <div class="p-4 border-b border-gray-800">
+      <!-- Logo -->
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-7 h-7 bg-primary-600 rounded-lg flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <span class="font-semibold text-white text-base">Sprite<span class="text-primary-400">Test</span></span>
+      </div>
+
+      <!-- Workspace Switcher -->
+      {% if request.workspace %}
+      <div class="relative">
+        <div class="w-full flex items-center justify-between px-3 py-2
+                    bg-gray-800 rounded-lg text-sm text-gray-100">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="w-6 h-6 rounded bg-gradient-to-br from-primary-600 to-blue-600
+                        flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {{ request.workspace.name|first|upper }}
+            </div>
+            <span class="truncate text-sm">{{ request.workspace.name }}</span>
+          </div>
+        </div>
+
+        <!-- Badge de plano -->
+        <div class="mt-1.5 flex items-center gap-1.5 px-3">
+          {% if request.workspace.plan == 'free' %}
+            <span class="text-xs text-gray-500">Plano Free</span>
+            <span class="text-xs text-primary-400 hover:underline cursor-pointer">&uarr; Upgrade</span>
+          {% elif request.workspace.plan == 'pro' %}
+            <span class="badge-success text-xs">Pro</span>
+          {% else %}
+            <span class="text-xs text-purple-400 font-medium">Enterprise</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+
+      <div class="pb-2 mb-2 border-b border-gray-800">
+        <a href="{% url 'dashboard:home' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Dashboard
+        </a>
+      </div>
+
+      <p class="text-xs text-gray-500 px-3 py-1 font-medium uppercase tracking-wider">Testing</p>
+
+      <a href="{% url 'testing:project_list' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'project_list' %}active{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        Test Projects
+      </a>
+
+      <a href="{% url 'dashboard:runs' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'runs' %}active{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Test Runs
+      </a>
+
+      <a href="{% url 'dashboard:monitoring' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'monitoring' %}active{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Monitoring
+      </a>
+
+      <div class="pt-2 mt-2 border-t border-gray-800">
+        <p class="text-xs text-gray-500 px-3 py-1 font-medium uppercase tracking-wider">Workspace</p>
+
+        <a href="{% url 'workspaces:members' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'members' %}active{% endif %}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Members
+        </a>
+
+        <a href="{% url 'workspaces:settings' %}"
+           class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Settings
+        </a>
+      </div>
+
+    </nav>
+
+    <!-- User Footer -->
+    <div class="p-3 border-t border-gray-800">
+      <a href="{% url 'accounts:profile' %}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors group">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-600 to-blue-600
+                    flex items-center justify-center text-white text-xs font-bold shrink-0">
+          {{ request.user.initials }}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium text-gray-200 truncate">{{ request.user.display_name }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors shrink-0"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- Main content -->
+  <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+
+    <!-- Top bar -->
+    <header class="h-14 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md
+                   flex items-center justify-between px-6 shrink-0 sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <h1 class="text-base font-semibold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        {% block header_actions %}{% endblock %}
+      </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="px-6 pt-4 space-y-2">
+      {% for message in messages %}
+      <div class="flex items-center gap-3 px-4 py-3 rounded-lg border text-sm
+                  {% if message.tags == 'error' %}bg-red-900/30 border-red-800 text-red-300
+                  {% elif message.tags == 'success' %}bg-emerald-900/30 border-emerald-800 text-emerald-300
+                  {% elif message.tags == 'warning' %}bg-amber-900/30 border-amber-800 text-amber-300
+                  {% else %}bg-gray-800 border-gray-700 text-gray-300{% endif %}"
+           data-message>
+        {{ message }}
+        <button onclick="this.parentElement.remove()"
+                class="ml-auto opacity-60 hover:opacity-100">&times;</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page content -->
+    <main class="flex-1 p-6">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+
+<style>
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  transition: all 150ms;
+  width: 100%;
+}
+.sidebar-link:hover {
+  color: #f3f4f6;
+  background-color: #1f2937;
+}
+.sidebar-link.active {
+  background-color: rgba(14, 165, 233, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+</style>
+
+<script>
+setTimeout(() => {
+  document.querySelectorAll('[data-message]').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s';
+    setTimeout(() => el.remove(), 300);
+  });
+}, 4000);
+</script>
+
+{% block extra_js %}{% endblock %}
+{% endblock %}

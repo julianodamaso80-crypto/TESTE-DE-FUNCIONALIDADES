@@ -1,0 +1,119 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}New Test{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <div class="mb-6">
+    <h2 class="text-xl font-bold text-white">Create a New Test Project</h2>
+    <p class="text-sm text-gray-400 mt-1">Enter your app URL and our AI will generate test cases automatically.</p>
+  </div>
+
+  <form method="post" id="new-test-form">
+    {% csrf_token %}
+
+    <!-- Section 1: Basic Info -->
+    <div class="card mb-4">
+      <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Basic Information</h3>
+
+      <div class="space-y-4">
+        <div>
+          <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+            Project Name
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.base_url.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+            Base URL <span class="text-red-400">*</span>
+          </label>
+          {{ form.base_url }}
+          {% if form.base_url.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.base_url.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.test_type.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+            Test Type
+          </label>
+          {{ form.test_type }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Credentials (Optional) -->
+    <div class="card mb-4">
+      <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">Authentication Credentials</h3>
+      <p class="text-xs text-gray-500 mb-4">Optional — provide if the app requires login to test.</p>
+
+      <div class="space-y-4">
+        <div>
+          <label for="{{ form.auth_email.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+            Email
+          </label>
+          {{ form.auth_email }}
+        </div>
+
+        <div>
+          <label for="{{ form.auth_password.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+            Password
+          </label>
+          {{ form.auth_password }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: AI Instructions (Optional) -->
+    <div class="card mb-6">
+      <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-1">AI Instructions</h3>
+      <p class="text-xs text-gray-500 mb-4">Optional — guide the AI on what to focus on.</p>
+
+      <div>
+        <label for="{{ form.special_instructions.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1">
+          Special Instructions
+        </label>
+        {{ form.special_instructions }}
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" id="submit-btn"
+            class="btn-primary w-full justify-center text-sm font-medium py-3">
+      <span id="btn-text" class="flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        Generate Test Cases with AI
+      </span>
+      <span id="btn-loading" class="hidden flex items-center gap-2">
+        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        Generating test cases...
+      </span>
+    </button>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('new-test-form').addEventListener('submit', function() {
+  const btn = document.getElementById('submit-btn');
+  const text = document.getElementById('btn-text');
+  const loading = document.getElementById('btn-loading');
+  btn.disabled = true;
+  btn.classList.add('opacity-60', 'cursor-not-allowed');
+  text.classList.add('hidden');
+  loading.classList.remove('hidden');
+});
+</script>
+{% endblock %}

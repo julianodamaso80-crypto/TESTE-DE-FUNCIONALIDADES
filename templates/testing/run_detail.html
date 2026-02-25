@@ -1,0 +1,237 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Test Run — {{ run.project.name }}{% endblock %}
+
+{% block header_actions %}
+{% if run.status == 'pending' %}
+<form method="post" action="{% url 'testing:execute_run' run_id=run.id %}">
+  {% csrf_token %}
+  <button type="submit" class="btn-primary text-sm">
+    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+    </svg>
+    Execute Tests
+  </button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if run.status == 'running' %}
+<!-- Auto-refresh while running -->
+<meta http-equiv="refresh" content="3">
+{% endif %}
+
+<!-- Running State: Spinner -->
+{% if run.status == 'running' %}
+<div class="card mb-6 text-center py-12">
+  <div class="flex flex-col items-center gap-4">
+    <svg class="animate-spin w-10 h-10 text-blue-400" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+    <div>
+      <h2 class="text-lg font-semibold text-white mb-1">Executando testes...</h2>
+      <p class="text-sm text-gray-400">
+        {{ run.total_cases }} test cases being executed. This page refreshes automatically.
+      </p>
+    </div>
+    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-900/40 text-blue-300 border border-blue-800/50">
+      Running
+    </span>
+  </div>
+</div>
+{% endif %}
+
+<!-- Error State -->
+{% if run.status == 'error' %}
+<div class="card mb-6 border-red-900/50 bg-red-900/10">
+  <div class="flex items-start gap-3">
+    <div class="w-8 h-8 rounded-full bg-red-900/40 flex items-center justify-center shrink-0 mt-0.5">
+      <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+      </svg>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-red-300 mb-1">Execution Error</h3>
+      <p class="text-sm text-red-400">{{ run.error_message }}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Header Stats (shown for all states except running) -->
+{% if run.status != 'running' %}
+<div class="card mb-6">
+  <div class="flex flex-wrap items-center gap-6">
+
+    <!-- Status Badge -->
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-400">Status:</span>
+      {% if run.status == 'pending' %}
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-900/40 text-amber-300 border border-amber-800/50">
+          Pending
+        </span>
+      {% elif run.status == 'passed' %}
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300 border border-emerald-800/50">
+          Passed
+        </span>
+      {% elif run.status == 'failed' %}
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-900/40 text-red-300 border border-red-800/50">
+          Failed
+        </span>
+      {% elif run.status == 'error' %}
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-900/40 text-red-300 border border-red-800/50">
+          Error
+        </span>
+      {% else %}
+        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700">
+          {{ run.status|title }}
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- Pass Rate -->
+    {% if run.status in 'passed,failed' %}
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-400">Pass Rate:</span>
+      <span class="text-lg font-bold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+        {{ run.pass_rate }}%
+      </span>
+    </div>
+
+    <div class="flex items-center gap-4 text-sm text-gray-400">
+      <span>Total: <strong class="text-white">{{ run.total_cases }}</strong></span>
+      <span>Passed: <strong class="text-emerald-400">{{ run.passed_cases }}</strong></span>
+      <span>Failed: <strong class="text-red-400">{{ run.failed_cases }}</strong></span>
+    </div>
+
+    {% if run.duration_secs %}
+    <div class="flex items-center gap-2 text-sm text-gray-400">
+      <span>Duration: <strong class="text-white">{{ run.duration_secs|floatformat:1 }}s</strong></span>
+    </div>
+    {% endif %}
+    {% elif run.status == 'pending' %}
+    <div class="text-sm text-gray-400">
+      <strong class="text-white">{{ run.total_cases }}</strong> test cases ready to execute
+    </div>
+    {% endif %}
+
+  </div>
+
+  {% if run.ai_summary and run.status != 'pending' %}
+  <div class="mt-4 pt-4 border-t border-gray-800">
+    <p class="text-sm text-gray-400">
+      <span class="text-gray-500 font-medium">AI Summary:</span> {{ run.ai_summary }}
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Test Cases by Category -->
+{% for category, cases in categories.items %}
+<div class="mb-6">
+  <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+    {{ category }}
+    <span class="text-xs text-gray-600">({{ cases|length }})</span>
+  </h3>
+
+  <div class="space-y-2">
+    {% for case in cases %}
+    <div class="card !p-0 overflow-hidden">
+      <!-- Case Header -->
+      <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-800/50 transition-colors"
+           onclick="this.nextElementSibling.classList.toggle('hidden')">
+
+        <!-- Status Icon -->
+        {% if case.status == 'passed' %}
+          <div class="w-6 h-6 rounded-full bg-emerald-900/40 flex items-center justify-center shrink-0">
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+        {% elif case.status == 'failed' %}
+          <div class="w-6 h-6 rounded-full bg-red-900/40 flex items-center justify-center shrink-0">
+            <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </div>
+        {% elif case.status == 'running' %}
+          <div class="w-6 h-6 rounded-full bg-blue-900/40 flex items-center justify-center shrink-0">
+            <svg class="animate-spin w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </div>
+        {% else %}
+          <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center shrink-0">
+            <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+          </div>
+        {% endif %}
+
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-200 truncate">{{ case.title }}</p>
+          {% if case.description %}
+            <p class="text-xs text-gray-500 truncate">{{ case.description }}</p>
+          {% endif %}
+        </div>
+
+        {% if case.duration_ms %}
+        <span class="text-xs text-gray-500 shrink-0">{{ case.duration_ms }}ms</span>
+        {% endif %}
+
+        <svg class="w-4 h-4 text-gray-600 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+
+      <!-- Collapsible Details -->
+      <div class="hidden border-t border-gray-800 px-4 py-3 bg-gray-900/50">
+        <!-- Steps -->
+        {% if case.steps %}
+        <div class="mb-3">
+          <p class="text-xs font-medium text-gray-500 uppercase mb-2">Steps</p>
+          <ol class="space-y-1">
+            {% for step in case.steps %}
+            <li class="text-sm text-gray-300 flex items-start gap-2">
+              <span class="text-xs text-gray-600 mt-0.5 shrink-0">{{ forloop.counter }}.</span>
+              {{ step }}
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+        {% endif %}
+
+        <!-- Error Message -->
+        {% if case.error_message %}
+        <div class="mb-3 p-3 rounded-lg bg-red-900/20 border border-red-900/30">
+          <p class="text-xs font-medium text-red-400 uppercase mb-1">Error</p>
+          <p class="text-sm text-red-300">{{ case.error_message }}</p>
+        </div>
+        {% endif %}
+
+        <!-- AI Fix Suggestion -->
+        {% if case.ai_fix_suggestion %}
+        <div class="p-3 rounded-lg bg-blue-900/20 border border-blue-900/30">
+          <p class="text-xs font-medium text-blue-400 uppercase mb-1">AI Fix Suggestion</p>
+          <p class="text-sm text-blue-300">{{ case.ai_fix_suggestion }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+<!-- Back link -->
+<div class="mt-6">
+  <a href="{% url 'testing:project_list' %}" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+    &larr; Back to Projects
+  </a>
+</div>
+
+{% endblock %}

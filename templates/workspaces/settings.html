@@ -1,0 +1,51 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Workspace Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+
+  <div class="card mb-6">
+    <h2 class="text-lg font-semibold text-white mb-4">General</h2>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Workspace Name</label>
+        <p class="text-sm text-gray-200">{{ request.workspace.name }}</p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Slug</label>
+        <p class="text-sm text-gray-200 font-mono">{{ request.workspace.slug }}</p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Plan</label>
+        <p class="text-sm text-gray-200 capitalize">{{ request.workspace.plan }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="text-lg font-semibold text-white mb-4">Plan Limits</h2>
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="text-gray-400">Test runs / month</span>
+        <p class="text-white font-medium">
+          {% if request.workspace.max_test_runs_per_month == -1 %}Unlimited{% else %}{{ request.workspace.max_test_runs_per_month }}{% endif %}
+        </p>
+      </div>
+      <div>
+        <span class="text-gray-400">Max members</span>
+        <p class="text-white font-medium">
+          {% if request.workspace.max_members == -1 %}Unlimited{% else %}{{ request.workspace.max_members }}{% endif %}
+        </p>
+      </div>
+      <div>
+        <span class="text-gray-400">Max projects</span>
+        <p class="text-white font-medium">
+          {% if request.workspace.max_projects == -1 %}Unlimited{% else %}{{ request.workspace.max_projects }}{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

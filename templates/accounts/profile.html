@@ -1,0 +1,48 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+
+  <div class="card mb-6">
+    <h2 class="text-lg font-semibold text-white mb-4">Profile Information</h2>
+
+    <div class="flex items-center gap-4 mb-6">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-blue-600
+                  flex items-center justify-center text-white text-xl font-bold">
+        {{ user.initials }}
+      </div>
+      <div>
+        <p class="text-lg font-semibold text-white">{{ user.display_name }}</p>
+        <p class="text-sm text-gray-400">{{ user.email }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Nome</label>
+        <p class="text-sm text-gray-200">{{ user.first_name|default:'—' }}</p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Sobrenome</label>
+        <p class="text-sm text-gray-200">{{ user.last_name|default:'—' }}</p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Membro desde</label>
+        <p class="text-sm text-gray-200">{{ user.created_at|date:"d/m/Y" }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="text-lg font-semibold text-white mb-4">Account</h2>
+    <div class="flex items-center gap-3">
+      <a href="{% url 'account_logout' %}" class="btn-secondary text-sm">
+        Sair da conta
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
