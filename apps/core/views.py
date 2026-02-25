@@ -31,6 +31,24 @@ def health_check(request):
     return JsonResponse(checks)
 
 
+def status_page(request):
+    from apps.core.status import get_system_status
+    status = get_system_status()
+    return render(request, 'core/status.html', {'status': status})
+
+
+def status_api(request):
+    from django.http import JsonResponse
+    from apps.core.status import get_system_status
+    status = get_system_status()
+    return JsonResponse({
+        'status': status['overall'],
+        'message': status['overall_text'],
+        'components': {k: v['status'] for k, v in status['components'].items()},
+        'timestamp': status['checked_at'].isoformat(),
+    })
+
+
 def error_404(request, exception):
     """Custom 404 error handler."""
     return render(request, 'errors/404.html', status=404)
