@@ -7,7 +7,7 @@ from django.utils import timezone
 logger = logging.getLogger('spritetest.playwright')
 
 
-def _run_browser_tests(cases_data: list, base_url: str) -> list:
+def _run_browser_tests(cases_data: list, base_url: str, run_id: str = None) -> list:
     """
     Executa os testes no Playwright (sync API).
     Recebe e retorna dados puros (dicts) — sem tocar no Django ORM.
@@ -63,7 +63,22 @@ def _run_browser_tests(cases_data: list, base_url: str) -> list:
                 elapsed = time.monotonic() - start
                 result['duration_ms'] = int(elapsed * 1000)
 
+            # Capture screenshot
+            screenshot_rel = ''
+            if run_id:
+                try:
+                    from django.conf import settings
+                    from pathlib import Path
+                    screenshot_dir = Path(settings.MEDIA_ROOT) / 'screenshots' / str(run_id)
+                    screenshot_dir.mkdir(parents=True, exist_ok=True)
+                    screenshot_file = screenshot_dir / f"{case_data['id']}.png"
+                    page.screenshot(path=str(screenshot_file), full_page=False)
+                    screenshot_rel = f"screenshots/{run_id}/{case_data['id']}.png"
+                except Exception:
+                    screenshot_rel = ''
+
             result['case_id'] = case_data['id']
+            result['screenshot_path'] = screenshot_rel
             results.append(result)
 
         browser.close()
@@ -131,7 +146,7 @@ def run_playwright_sync(test_run) -> None:
     cases_map = {str(c.id): c for c in cases}
 
     # 2) Run browser tests (pure Playwright, no ORM)
-    results = _run_browser_tests(cases_data, base_url)
+    results = _run_browser_tests(cases_data, base_url, run_id=str(test_run.id))
 
     # 3) Save results back to DB (outside Playwright context)
     for result in results:
@@ -140,7 +155,8 @@ def run_playwright_sync(test_run) -> None:
         case.error_message = result.get('error', '')
         case.ai_fix_suggestion = result.get('fix_suggestion', '')
         case.duration_ms = result.get('duration_ms', 0)
-        case.save(update_fields=['status', 'error_message', 'ai_fix_suggestion', 'duration_ms'])
+        case.screenshot_path = result.get('screenshot_path', '')
+        case.save(update_fields=['status', 'error_message', 'ai_fix_suggestion', 'duration_ms', 'screenshot_path'])
 
     # 4) Recalculate summary
     test_run.recalculate_summary()

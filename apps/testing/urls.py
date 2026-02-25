@@ -9,4 +9,7 @@ urlpatterns = [
     path('projects/', views.project_list, name='project_list'),
     path('runs/<uuid:run_id>/', views.run_detail, name='run_detail'),
     path('runs/<uuid:run_id>/execute/', views.execute_run, name='execute_run'),
+    path('runs/<uuid:run_id>/report/', views.run_report, name='run_report'),
+    path('runs/<uuid:run_id>/share/', views.toggle_share, name='toggle_share'),
+    path('public/<uuid:share_token>/', views.run_public, name='run_public'),
 ]

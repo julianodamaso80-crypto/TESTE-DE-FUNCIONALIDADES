@@ -3,6 +3,28 @@
 {% block page_title %}Test Run — {{ run.project.name }}{% endblock %}
 
 {% block header_actions %}
+{% if run.status != 'pending' and run.status != 'running' %}
+<a href="{% url 'testing:run_report' run_id=run.id %}" class="btn-ghost text-sm">
+  📄 Relatório
+</a>
+<form method="post" action="{% url 'testing:toggle_share' run_id=run.id %}" style="display:inline">
+  {% csrf_token %}
+  <button type="submit" class="btn-secondary text-sm">
+    {% if run.is_public %}🔗 Link ativo{% else %}🔗 Compartilhar{% endif %}
+  </button>
+</form>
+{% if run.is_public %}
+<div class="flex items-center gap-2 px-3 py-2 bg-surface-card border border-surface-border rounded-lg text-xs text-gray-400">
+  <span>Link:</span>
+  <a href="{% url 'testing:run_public' share_token=run.share_token %}"
+     target="_blank" class="text-primary-400 hover:underline truncate max-w-xs">
+    /testing/public/{{ run.share_token }}/
+  </a>
+  <button onclick="navigator.clipboard.writeText(window.location.origin + '/testing/public/{{ run.share_token }}/').then(() => this.textContent = '✓')"
+          class="text-gray-500 hover:text-primary-400">📋</button>
+</div>
+{% endif %}
+{% endif %}
 {% if run.status == 'pending' %}
 <form method="post" action="{% url 'testing:execute_run' run_id=run.id %}">
   {% csrf_token %}

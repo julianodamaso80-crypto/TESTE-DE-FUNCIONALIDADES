@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .ai_service import generate_test_cases
 from .executor import run_test_execution_smart
@@ -147,3 +148,50 @@ def project_list(request):
     return render(request, 'testing/project_list.html', {
         'project_data': project_data,
     })
+
+
+@login_required
+def run_report(request, run_id):
+    run = get_object_or_404(TestRun, id=run_id, project__workspace=request.workspace)
+    cases = run.cases.all().order_by('order')
+    categories = {}
+    for case in cases:
+        cat = case.category or 'General'
+        if cat not in categories:
+            categories[cat] = {'passed': 0, 'failed': 0, 'cases': []}
+        categories[cat]['cases'].append(case)
+        if case.status == 'passed':
+            categories[cat]['passed'] += 1
+        else:
+            categories[cat]['failed'] += 1
+    return render(request, 'testing/run_report.html', {
+        'run': run, 'cases': cases, 'categories': categories,
+    })
+
+
+def run_public(request, share_token):
+    run = get_object_or_404(TestRun, share_token=share_token, is_public=True)
+    cases = run.cases.all().order_by('order')
+    categories = {}
+    for case in cases:
+        cat = case.category or 'General'
+        if cat not in categories:
+            categories[cat] = {'passed': 0, 'failed': 0, 'cases': []}
+        categories[cat]['cases'].append(case)
+        if case.status == 'passed':
+            categories[cat]['passed'] += 1
+        else:
+            categories[cat]['failed'] += 1
+    return render(request, 'testing/run_public.html', {
+        'run': run, 'cases': cases, 'categories': categories,
+    })
+
+
+@login_required
+@require_POST
+def toggle_share(request, run_id):
+    run = get_object_or_404(TestRun, id=run_id, project__workspace=request.workspace)
+    run.is_public = not run.is_public
+    run.save(update_fields=['is_public'])
+    messages.success(request, f"Link público {'ativado' if run.is_public else 'desativado'}")
+    return redirect('testing:run_detail', run_id=run_id)

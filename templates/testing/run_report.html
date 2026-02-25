@@ -1,0 +1,189 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Relatório — {{ run.project.name }}{% endblock %}
+
+{% block header_actions %}
+<button onclick="window.print()" class="btn-ghost text-sm no-print">
+  🖨️ Imprimir
+</button>
+<a href="{% url 'testing:run_detail' run_id=run.id %}" class="btn-ghost text-sm no-print">
+  ← Voltar
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Summary Card -->
+<div class="card mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-bold text-white mb-1">{{ run.project.name }}</h2>
+      <p class="text-sm text-gray-400">{{ run.project.base_url }}</p>
+      <p class="text-xs text-gray-500 mt-1">
+        Executado em {{ run.completed_at|date:"d/m/Y H:i" }}
+        {% if run.duration_secs %}· {{ run.duration_secs|floatformat:1 }}s{% endif %}
+      </p>
+    </div>
+    <div class="flex items-center gap-4">
+      {% if run.status == 'passed' %}
+        <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300 border border-emerald-800/50">
+          Passed
+        </span>
+      {% elif run.status == 'failed' %}
+        <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-red-900/40 text-red-300 border border-red-800/50">
+          Failed
+        </span>
+      {% else %}
+        <span class="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700">
+          {{ run.status|title }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pass Rate -->
+  <div class="mt-6">
+    <div class="flex items-end justify-between mb-2">
+      <span class="text-4xl font-bold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+        {{ run.pass_rate }}%
+      </span>
+      <div class="flex items-center gap-4 text-sm text-gray-400">
+        <span>Total: <strong class="text-white">{{ run.total_cases }}</strong></span>
+        <span>Passed: <strong class="text-emerald-400">{{ run.passed_cases }}</strong></span>
+        <span>Failed: <strong class="text-red-400">{{ run.failed_cases }}</strong></span>
+      </div>
+    </div>
+    <div class="w-full bg-gray-800 rounded-full h-3">
+      <div class="h-3 rounded-full {% if run.pass_rate >= 80 %}bg-emerald-500{% elif run.pass_rate >= 50 %}bg-amber-500{% else %}bg-red-500{% endif %} transition-all"
+           style="width: {{ run.pass_rate }}%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Summary -->
+{% if run.ai_summary %}
+<div class="card mb-6 border-primary-800/30 bg-primary-900/10">
+  <div class="flex items-start gap-3">
+    <div class="w-8 h-8 rounded-full bg-primary-900/40 flex items-center justify-center shrink-0 mt-0.5">
+      <svg class="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-primary-300 mb-1">AI Summary</h3>
+      <p class="text-sm text-gray-300">{{ run.ai_summary }}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Test Cases by Category -->
+{% for cat_name, cat_data in categories.items %}
+<div class="mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+      {{ cat_name }}
+      <span class="text-xs text-gray-600">({{ cat_data.cases|length }})</span>
+    </h3>
+    <div class="flex items-center gap-3 text-xs text-gray-500">
+      <span class="text-emerald-400">{{ cat_data.passed }} passed</span>
+      <span class="text-red-400">{{ cat_data.failed }} failed</span>
+    </div>
+  </div>
+
+  <div class="space-y-2">
+    {% for case in cat_data.cases %}
+    <div class="card !p-0 overflow-hidden">
+      <details>
+        <summary class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-800/50 transition-colors list-none">
+          {% if case.status == 'passed' %}
+            <div class="w-6 h-6 rounded-full bg-emerald-900/40 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          {% else %}
+            <div class="w-6 h-6 rounded-full bg-red-900/40 flex items-center justify-center shrink-0">
+              <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+          {% endif %}
+
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-200">{{ case.title }}</p>
+            {% if case.description %}
+              <p class="text-xs text-gray-500">{{ case.description }}</p>
+            {% endif %}
+          </div>
+
+          {% if case.duration_ms %}
+          <span class="text-xs text-gray-500 shrink-0">{{ case.duration_ms }}ms</span>
+          {% endif %}
+
+          <svg class="w-4 h-4 text-gray-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+
+        <div class="border-t border-gray-800 px-4 py-3 bg-gray-900/50">
+          {% if case.steps %}
+          <div class="mb-3">
+            <p class="text-xs font-medium text-gray-500 uppercase mb-2">Steps</p>
+            <ol class="space-y-1">
+              {% for step in case.steps %}
+              <li class="text-sm text-gray-300 flex items-start gap-2">
+                <span class="text-xs text-gray-600 mt-0.5 shrink-0">{{ forloop.counter }}.</span>
+                {{ step }}
+              </li>
+              {% endfor %}
+            </ol>
+          </div>
+          {% endif %}
+
+          {% if case.error_message %}
+          <div class="mb-3 p-3 rounded-lg bg-red-900/20 border border-red-900/30">
+            <p class="text-xs font-medium text-red-400 uppercase mb-1">Error</p>
+            <p class="text-sm text-red-300">{{ case.error_message }}</p>
+          </div>
+          {% endif %}
+
+          {% if case.ai_fix_suggestion %}
+          <div class="mb-3 p-3 rounded-lg bg-primary-900/20 border border-primary-900/30">
+            <p class="text-xs font-medium text-primary-400 uppercase mb-1">AI Fix Suggestion</p>
+            <p class="text-sm text-primary-300">{{ case.ai_fix_suggestion }}</p>
+          </div>
+          {% endif %}
+
+          {% if case.screenshot_path %}
+          <div class="mt-2">
+            <img src="{{ MEDIA_URL }}{{ case.screenshot_path }}"
+                 alt="Screenshot {{ case.title }}"
+                 class="mt-2 rounded border border-surface-border max-h-48 object-cover">
+          </div>
+          {% endif %}
+        </div>
+      </details>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+<!-- Footer -->
+<div class="mt-8 pt-4 border-t border-gray-800 text-center text-xs text-gray-500">
+  Relatório gerado por SpriteTest em {{ run.completed_at|date:"d/m/Y H:i" }}
+</div>
+
+<style>
+@media print {
+  aside, header, nav, .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .card { border: 1px solid #ccc !important; background: white !important; }
+  * { color: #333 !important; }
+}
+details > summary::-webkit-details-marker { display: none; }
+</style>
+
+{% endblock %}
