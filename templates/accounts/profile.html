@@ -1,47 +1,135 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
-{% block page_title %}Profile{% endblock %}
+{% block page_title %}Meu Perfil{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl">
+<div class="max-w-3xl space-y-6">
 
-  <div class="card mb-6">
-    <h2 class="text-lg font-semibold text-white mb-4">Profile Information</h2>
+  <!-- Informacoes Pessoais -->
+  <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
+    <h2 class="text-lg font-semibold text-white mb-6">Informações Pessoais</h2>
 
-    <div class="flex items-center gap-4 mb-6">
-      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-primary-600 to-blue-600
-                  flex items-center justify-center text-white text-xl font-bold">
+    <div class="flex items-start gap-6 mb-6">
+      <div class="w-20 h-20 rounded-2xl bg-primary-400 flex items-center justify-center text-dark-900 text-2xl font-bold shrink-0">
         {{ user.initials }}
       </div>
       <div>
-        <p class="text-lg font-semibold text-white">{{ user.display_name }}</p>
-        <p class="text-sm text-gray-400">{{ user.email }}</p>
+        <p class="text-xl font-semibold text-white">{{ user.display_name }}</p>
+        <p class="text-sm text-gray-400 mt-1">{{ user.email }}</p>
+        <p class="text-xs text-gray-500 mt-2">Membro desde {{ user.created_at|date:"d/m/Y" }}</p>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-400 mb-1">Nome</label>
-        <p class="text-sm text-gray-200">{{ user.first_name|default:'—' }}</p>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_profile">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="display_name" class="block text-xs font-medium text-gray-400 mb-1.5">Nome de exibição</label>
+          <input type="text" id="display_name" name="display_name" value="{{ user.display_name }}"
+                 class="w-full px-3 py-2.5 rounded-lg border border-surface-border bg-dark-900 text-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 placeholder-gray-600"
+                 placeholder="Seu nome">
+        </div>
+        <div>
+          <label for="email" class="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
+          <input type="email" id="email" name="email" value="{{ user.email }}"
+                 class="w-full px-3 py-2.5 rounded-lg border border-surface-border bg-dark-900 text-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 placeholder-gray-600"
+                 placeholder="seu@email.com">
+        </div>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-400 mb-1">Sobrenome</label>
-        <p class="text-sm text-gray-200">{{ user.last_name|default:'—' }}</p>
+      <div class="flex justify-end">
+        <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary-400 text-dark-900 text-sm font-semibold hover:bg-primary-300 transition-colors">Salvar</button>
       </div>
+    </form>
+  </div>
+
+  <!-- Seguranca -->
+  <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
+    <h2 class="text-lg font-semibold text-white mb-6">Segurança</h2>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="change_password">
       <div>
-        <label class="block text-xs font-medium text-gray-400 mb-1">Membro desde</label>
-        <p class="text-sm text-gray-200">{{ user.created_at|date:"d/m/Y" }}</p>
+        <label for="old_password" class="block text-xs font-medium text-gray-400 mb-1.5">Senha atual</label>
+        <input type="password" id="old_password" name="old_password" required
+               class="w-full px-3 py-2.5 rounded-lg border border-surface-border bg-dark-900 text-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 placeholder-gray-600"
+               placeholder="••••••••">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="new_password" class="block text-xs font-medium text-gray-400 mb-1.5">Nova senha</label>
+          <input type="password" id="new_password" name="new_password" required minlength="8"
+                 class="w-full px-3 py-2.5 rounded-lg border border-surface-border bg-dark-900 text-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 placeholder-gray-600"
+                 placeholder="Mínimo 8 caracteres">
+        </div>
+        <div>
+          <label for="confirm_password" class="block text-xs font-medium text-gray-400 mb-1.5">Confirmar nova senha</label>
+          <input type="password" id="confirm_password" name="confirm_password" required minlength="8"
+                 class="w-full px-3 py-2.5 rounded-lg border border-surface-border bg-dark-900 text-gray-100 text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 placeholder-gray-600"
+                 placeholder="Repita a nova senha">
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button type="submit" class="px-5 py-2.5 rounded-lg border border-surface-border text-gray-300 text-sm font-medium hover:bg-surface-hover transition-colors">Alterar Senha</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Meus Workspaces -->
+  <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
+    <h2 class="text-lg font-semibold text-white mb-4">Meus Workspaces</h2>
+    {% if workspaces %}
+    <div class="space-y-2">
+      {% for ws in workspaces %}
+      <div class="flex items-center justify-between px-4 py-3 rounded-lg border border-surface-border hover:bg-surface-hover transition-colors" style="background:#242424">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-dark-900 text-xs font-bold shrink-0">
+            {{ ws.name|first|upper }}
+          </div>
+          <div>
+            <p class="text-sm font-medium text-white">{{ ws.name }}</p>
+            <p class="text-xs text-gray-500">{{ ws.slug }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          {% if ws.plan == 'pro' %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-400/10 text-primary-400 border border-primary-400/20">Pro</span>
+          {% else %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700/50 text-gray-400 border border-gray-700">Free</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">Nenhum workspace encontrado.</p>
+    {% endif %}
+  </div>
+
+  <!-- Atividade -->
+  <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
+    <h2 class="text-lg font-semibold text-white mb-4">Atividade</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="px-4 py-3 rounded-lg border border-surface-border" style="background:#242424">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">API Keys ativas</p>
+        <p class="text-xl font-bold text-white">{{ api_keys_count }}</p>
+      </div>
+      <div class="px-4 py-3 rounded-lg border border-surface-border" style="background:#242424">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Membro desde</p>
+        <p class="text-xl font-bold text-white">{{ user.created_at|date:"d/m/Y" }}</p>
+      </div>
+      <div class="px-4 py-3 rounded-lg border border-surface-border" style="background:#242424">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Plano atual</p>
+        <p class="text-xl font-bold text-white">
+          {% if request.workspace %}{{ request.workspace.plan|title }}{% else %}Free{% endif %}
+        </p>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <h2 class="text-lg font-semibold text-white mb-4">Account</h2>
-    <div class="flex items-center gap-3">
-      <a href="{% url 'account_logout' %}" class="btn-secondary text-sm">
-        Sair da conta
-      </a>
-    </div>
+  <!-- Logout -->
+  <div class="flex justify-end">
+    <a href="{% url 'account_logout' %}" class="px-5 py-2.5 rounded-lg border border-red-900/40 text-red-400 text-sm font-medium hover:bg-red-950/30 transition-colors">Sair da conta</a>
   </div>
 
 </div>

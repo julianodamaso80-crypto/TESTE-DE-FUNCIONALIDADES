@@ -141,20 +141,14 @@
 
     <!-- User Footer -->
     <div class="p-3 border-t border-surface-border">
-      <a href="{% url 'accounts:profile' %}"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-hover transition-colors group">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600
-                    flex items-center justify-center text-dark-900 text-xs font-bold shrink-0">
-          {{ request.user.initials }}
+      <a href="{% url 'accounts:profile' %}" class="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-hover rounded-lg transition-colors">
+        <div class="w-8 h-8 rounded-lg bg-primary-400 flex items-center justify-center text-dark-900 font-bold text-sm shrink-0">
+          {{ user.initials|default:user.email|first|upper }}
         </div>
-        <div class="min-w-0 flex-1">
-          <p class="text-sm font-medium text-gray-200 truncate">{{ request.user.display_name }}</p>
-          <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-white truncate">{{ user.display_name|default:user.email }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
         </div>
-        <svg class="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors shrink-0"
-             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
       </a>
     </div>
 
