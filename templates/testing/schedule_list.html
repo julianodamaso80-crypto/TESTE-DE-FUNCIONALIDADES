@@ -1,0 +1,109 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Monitoring & Scheduling{% endblock %}
+
+{% block header_actions %}
+{% if schedules %}
+<span class="text-xs text-gray-500">{{ schedules|length }} agendamento{{ schedules|length|pluralize:"s" }}</span>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if schedules %}
+<div class="card overflow-hidden p-0">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-surface-border text-left text-xs text-gray-500 uppercase tracking-wider">
+        <th class="px-5 py-3 font-medium">Projeto</th>
+        <th class="px-5 py-3 font-medium">URL</th>
+        <th class="px-5 py-3 font-medium">Frequência</th>
+        <th class="px-5 py-3 font-medium">Status</th>
+        <th class="px-5 py-3 font-medium">Último Run</th>
+        <th class="px-5 py-3 font-medium">Próximo Run</th>
+        <th class="px-5 py-3 font-medium text-right">Ações</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-surface-border">
+      {% for schedule in schedules %}
+      <tr class="hover:bg-surface-hover transition-colors">
+        <td class="px-5 py-3">
+          <span class="font-medium text-white">{{ schedule.project.name }}</span>
+        </td>
+        <td class="px-5 py-3">
+          <span class="text-gray-400 text-xs truncate max-w-[200px] block">{{ schedule.project.base_url }}</span>
+        </td>
+        <td class="px-5 py-3">
+          <span class="text-gray-300">{{ schedule.get_frequency_display }}</span>
+        </td>
+        <td class="px-5 py-3">
+          {% if schedule.is_active %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Ativo
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+              Pausado
+            </span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-gray-400 text-xs">
+          {% if schedule.last_run_at %}
+            {{ schedule.last_run_at|date:"d/m/Y H:i" }}
+          {% else %}
+            <span class="text-gray-600">—</span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-gray-400 text-xs">
+          {% if schedule.next_run_at and schedule.is_active %}
+            {{ schedule.next_run_at|date:"d/m/Y H:i" }}
+          {% else %}
+            <span class="text-gray-600">—</span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-right">
+          <form method="post" action="{% url 'testing:schedule_toggle' schedule.id %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                           {% if schedule.is_active %}bg-amber-900/30 text-amber-300 hover:bg-amber-900/50
+                           {% else %}bg-emerald-900/30 text-emerald-300 hover:bg-emerald-900/50{% endif %}">
+              {% if schedule.is_active %}Pausar{% else %}Ativar{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+
+<!-- Empty State -->
+<div class="card text-center py-16">
+  <div class="w-16 h-16 rounded-2xl bg-primary-900/30 border border-primary-800/50
+              flex items-center justify-center mx-auto mb-6">
+    <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </div>
+  <h2 class="text-xl font-bold text-white mb-3">Nenhum agendamento configurado</h2>
+  <p class="text-gray-400 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+    Configure agendamentos nos seus projetos para executar testes automaticamente e receber notificações por email.
+  </p>
+  <a href="{% url 'testing:project_list' %}" class="btn-primary mx-auto inline-flex">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+    Ver Projetos
+  </a>
+</div>
+
+{% endif %}
+
+{% endblock %}

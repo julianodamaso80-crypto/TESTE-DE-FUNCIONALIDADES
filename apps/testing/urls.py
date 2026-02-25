@@ -12,4 +12,7 @@ urlpatterns = [
     path('runs/<uuid:run_id>/report/', views.run_report, name='run_report'),
     path('runs/<uuid:run_id>/share/', views.toggle_share, name='toggle_share'),
     path('public/<uuid:share_token>/', views.run_public, name='run_public'),
+    path('schedules/', views.schedule_list, name='schedule_list'),
+    path('schedules/project/<uuid:project_id>/', views.schedule_create, name='schedule_create'),
+    path('schedules/<uuid:schedule_id>/toggle/', views.schedule_toggle, name='schedule_toggle'),
 ]

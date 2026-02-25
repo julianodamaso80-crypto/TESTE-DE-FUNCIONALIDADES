@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from .ai_service import generate_test_cases
 from .executor import run_test_execution_smart
 from .forms import TestProjectForm
-from .models import TestCase, TestProject, TestRun
+from .models import ScheduleFrequency, ScheduledTest, TestCase, TestProject, TestRun
 
 
 @login_required
@@ -195,3 +195,55 @@ def toggle_share(request, run_id):
     run.save(update_fields=['is_public'])
     messages.success(request, f"Link público {'ativado' if run.is_public else 'desativado'}")
     return redirect('testing:run_detail', run_id=run_id)
+
+
+@login_required
+def schedule_list(request):
+    schedules = ScheduledTest.objects.filter(
+        project__workspace=request.workspace
+    ).select_related('project')
+    return render(request, 'testing/schedule_list.html', {'schedules': schedules})
+
+
+@login_required
+def schedule_create(request, project_id):
+    project = get_object_or_404(TestProject, id=project_id, workspace=request.workspace)
+    if request.method == 'POST':
+        frequency = request.POST.get('frequency', 'daily')
+        notify_email = request.POST.get('notify_email') == 'on'
+        notify_failure_only = request.POST.get('notify_on_failure_only') == 'on'
+        schedule, created = ScheduledTest.objects.get_or_create(
+            project=project,
+            defaults={
+                'created_by': request.user,
+                'frequency': frequency,
+                'notify_email': notify_email,
+                'notify_on_failure_only': notify_failure_only,
+            },
+        )
+        if not created:
+            schedule.frequency = frequency
+            schedule.notify_email = notify_email
+            schedule.notify_on_failure_only = notify_failure_only
+            schedule.save()
+        schedule.calculate_next_run()
+        messages.success(request, f'Agendamento {frequency} configurado!')
+        return redirect('testing:schedule_list')
+    return render(request, 'testing/schedule_form.html', {
+        'project': project,
+        'frequencies': ScheduleFrequency.choices,
+    })
+
+
+@login_required
+@require_POST
+def schedule_toggle(request, schedule_id):
+    schedule = get_object_or_404(
+        ScheduledTest, id=schedule_id, project__workspace=request.workspace
+    )
+    schedule.is_active = not schedule.is_active
+    if schedule.is_active:
+        schedule.calculate_next_run()
+    schedule.save(update_fields=['is_active'])
+    messages.success(request, f"Agendamento {'ativado' if schedule.is_active else 'pausado'}")
+    return redirect('testing:schedule_list')

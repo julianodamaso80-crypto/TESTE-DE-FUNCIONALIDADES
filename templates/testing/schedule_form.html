@@ -1,0 +1,96 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Configurar Agendamento{% endblock %}
+
+{% block content %}
+
+<div class="max-w-xl mx-auto space-y-6">
+
+  <!-- Project Info -->
+  <div class="card">
+    <div class="flex items-center gap-3 mb-1">
+      <div class="w-10 h-10 rounded-lg bg-primary-900/30 border border-primary-800/50
+                  flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-base font-semibold text-white">{{ project.name }}</h3>
+        <p class="text-xs text-gray-500">{{ project.base_url }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Form -->
+  <div class="card">
+    <h2 class="text-lg font-semibold text-white mb-5">Configurar Agendamento</h2>
+
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <!-- Frequency -->
+      <div>
+        <label for="frequency" class="block text-sm font-medium text-gray-300 mb-1.5">Frequência</label>
+        <select name="frequency" id="frequency"
+                class="input-field bg-surface-input w-full">
+          {% for value, label in frequencies %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Notify Email -->
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="notify_email" id="notify_email"
+               checked
+               class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-primary-500 focus:ring-primary-500">
+        <label for="notify_email" class="text-sm text-gray-300">Notificar por email</label>
+      </div>
+
+      <!-- Notify on Failure Only -->
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="notify_on_failure_only" id="notify_on_failure_only"
+               checked
+               class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-primary-500 focus:ring-primary-500">
+        <label for="notify_on_failure_only" class="text-sm text-gray-300">Apenas em falhas</label>
+      </div>
+
+      <!-- Submit -->
+      <div class="pt-2">
+        <button type="submit" class="btn-primary w-full justify-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Salvar Agendamento
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info Card -->
+  <div class="card bg-surface-card border-primary-800/30">
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-primary-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div class="text-sm text-gray-400 leading-relaxed">
+        <p class="font-medium text-gray-300 mb-1">Como funciona</p>
+        <p>Após salvar, o próximo run será calculado automaticamente com base na frequência selecionada. Os testes serão gerados pela IA e executados automaticamente.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back Link -->
+  <div class="text-center">
+    <a href="{% url 'testing:schedule_list' %}" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+      &larr; Voltar para Monitoring
+    </a>
+  </div>
+
+</div>
+
+{% endblock %}

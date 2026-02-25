@@ -154,3 +154,12 @@ CELERY_TIMEZONE = 'America/Sao_Paulo'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 600
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    'run-scheduled-tests': {
+        'task': 'testing.run_scheduled_tests',
+        'schedule': crontab(minute='*/5'),
+    },
+}

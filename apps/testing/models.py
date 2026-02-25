@@ -136,3 +136,50 @@ class TestCase(models.Model):
 
     def __str__(self):
         return f"{self.title} [{self.status}]"
+
+
+class ScheduleFrequency(models.TextChoices):
+    HOURLY = 'hourly', 'A cada hora'
+    DAILY = 'daily', 'Diário'
+    WEEKLY = 'weekly', 'Semanal'
+    MONTHLY = 'monthly', 'Mensal'
+
+
+class ScheduledTest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project = models.ForeignKey(TestProject, on_delete=models.CASCADE, related_name='schedules')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    frequency = models.CharField(
+        max_length=20, choices=ScheduleFrequency.choices, default=ScheduleFrequency.DAILY
+    )
+    is_active = models.BooleanField(default=True)
+    notify_email = models.BooleanField(default=True)
+    notify_on_failure_only = models.BooleanField(default=True)
+    last_run_at = models.DateTimeField(null=True, blank=True)
+    next_run_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def calculate_next_run(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        now = timezone.now()
+        delta = {
+            'hourly': timedelta(hours=1),
+            'daily': timedelta(days=1),
+            'weekly': timedelta(weeks=1),
+            'monthly': timedelta(days=30),
+        }
+        self.next_run_at = now + delta.get(self.frequency, timedelta(days=1))
+        self.save(update_fields=['next_run_at'])
+
+    class Meta:
+        verbose_name = 'Agendamento'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.project.name} — {self.frequency}"

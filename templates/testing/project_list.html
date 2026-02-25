@@ -47,6 +47,35 @@
       </div>
     </div>
 
+    <!-- Scheduling Info -->
+    {% if item.project.schedules.exists %}
+    {% with schedule=item.project.schedules.first %}
+    <div class="flex items-center gap-2 mb-3 px-2.5 py-2 rounded-lg bg-surface text-xs">
+      <svg class="w-3.5 h-3.5 text-primary-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      {% if schedule.is_active %}
+        <span class="text-emerald-400">{{ schedule.get_frequency_display }}</span>
+        {% if schedule.next_run_at %}
+        <span class="text-gray-500">· próximo: {{ schedule.next_run_at|date:"d/m H:i" }}</span>
+        {% endif %}
+      {% else %}
+        <span class="text-gray-500">Agendamento pausado</span>
+      {% endif %}
+    </div>
+    {% endwith %}
+    {% else %}
+    <div class="mb-3">
+      <a href="{% url 'testing:schedule_create' project_id=item.project.id %}"
+         class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-primary-400 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Configurar agendamento
+      </a>
+    </div>
+    {% endif %}
+
     <div class="flex items-center gap-2">
       <a href="{% url 'testing:new_test' %}"
          class="flex-1 text-center px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm text-gray-300 transition-colors">
