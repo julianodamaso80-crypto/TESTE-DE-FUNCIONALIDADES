@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'apps.workspaces.middleware.CurrentWorkspaceMiddleware',
+    'apps.accounts.middleware.OnboardingMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

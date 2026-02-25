@@ -66,6 +66,10 @@ def new_test(request):
                 'workspace_plan': request.workspace.plan,
             })
 
+            if not request.user.onboarding_completed:
+                request.user.onboarding_completed = True
+                request.user.save(update_fields=['onboarding_completed'])
+
             messages.success(request, f'{len(test_cases)} test cases generated for "{project.name}".')
             return redirect('testing:run_detail', run_id=run.id)
     else:
