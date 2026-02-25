@@ -5,27 +5,27 @@
 <div class="min-h-screen bg-dark-900 flex">
 
   <!-- Sidebar -->
-  <aside class="w-64 shrink-0 bg-dark-800 border-r border-surface-border flex flex-col min-h-screen hidden md:flex">
+  <aside class="w-64 shrink-0 border-r border-surface-border flex flex-col min-h-screen hidden md:flex" style="background:#1e1e1e">
 
     <!-- Logo + Workspace switcher -->
     <div class="p-4 border-b border-surface-border">
       <!-- Logo -->
       <div class="flex items-center gap-2.5 mb-4">
-        <div class="w-7 h-7 bg-primary-500 rounded-lg flex items-center justify-center">
+        <div class="w-7 h-7 bg-primary-400 rounded-lg flex items-center justify-center">
           <svg class="w-4 h-4 text-dark-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <span class="font-semibold text-white text-base">Sprite<span class="text-primary-500">Test</span></span>
+        <span class="font-semibold text-white text-base">Sprite<span class="text-primary-400">Test</span></span>
       </div>
 
       <!-- Workspace Switcher -->
       {% if request.workspace %}
       <div class="relative">
         <div class="w-full flex items-center justify-between px-3 py-2
-                    bg-surface hover:bg-surface-hover rounded-lg text-sm text-gray-100 transition-colors">
+                    bg-surface-card hover:bg-surface-hover rounded-lg border border-surface-border text-sm text-gray-100 transition-colors">
           <div class="flex items-center gap-2 min-w-0">
-            <div class="w-6 h-6 rounded bg-gradient-to-br from-primary-500 to-primary-700
+            <div class="w-6 h-6 rounded bg-gradient-to-br from-primary-400 to-primary-600
                         flex items-center justify-center text-dark-900 text-xs font-bold shrink-0">
               {{ request.workspace.name|first|upper }}
             </div>
@@ -36,8 +36,8 @@
         <!-- Badge de plano -->
         <div class="mt-1.5 flex items-center gap-1.5 px-3">
           {% if request.workspace.plan == 'free' %}
-            <span class="text-xs text-gray-500">Plano Free</span>
-            <span class="text-xs text-primary-400 hover:underline cursor-pointer">&uarr; Upgrade</span>
+            <span class="badge-green text-xs">FREE</span>
+            <a href="{% url 'billing:pricing' %}" class="text-xs text-primary-400 hover:text-primary-300 hover:underline">&uarr; Upgrade</a>
           {% elif request.workspace.plan == 'pro' %}
             <span class="badge-success text-xs">Pro</span>
           {% else %}
@@ -117,13 +117,25 @@
         </a>
       </div>
 
+      {% if request.workspace and request.workspace.plan == 'free' %}
+      <div class="pt-2 mt-2 border-t border-surface-border">
+        <a href="{% url 'billing:pricing' %}"
+           class="sidebar-link text-primary-400 hover:text-primary-300">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          Upgrade para Pro
+        </a>
+      </div>
+      {% endif %}
+
     </nav>
 
     <!-- User Footer -->
     <div class="p-3 border-t border-surface-border">
       <a href="{% url 'accounts:profile' %}"
-         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface transition-colors group">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700
+         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-hover transition-colors group">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600
                     flex items-center justify-center text-dark-900 text-xs font-bold shrink-0">
           {{ request.user.initials }}
         </div>
@@ -144,7 +156,7 @@
   <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
 
     <!-- Top bar -->
-    <header class="h-14 border-b border-surface-border bg-dark-900/90 backdrop-blur-md
+    <header class="h-14 border-b border-surface-border bg-dark-900/95 backdrop-blur-md
                    flex items-center justify-between px-6 shrink-0 sticky top-0 z-30">
       <div class="flex items-center gap-3">
         <h1 class="text-base font-semibold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
@@ -159,9 +171,9 @@
     <div class="px-6 pt-4 space-y-2">
       {% for message in messages %}
       <div class="flex items-center gap-3 px-4 py-3 rounded-lg border text-sm
-                  {% if message.tags == 'error' %}bg-red-900/30 border-red-800 text-red-300
-                  {% elif message.tags == 'success' %}bg-emerald-900/30 border-emerald-800 text-emerald-300
-                  {% elif message.tags == 'warning' %}bg-amber-900/30 border-amber-800 text-amber-300
+                  {% if message.tags == 'error' %}bg-red-950/30 border-red-900/40 text-red-400
+                  {% elif message.tags == 'success' %}bg-emerald-950/30 border-emerald-900/40 text-emerald-400
+                  {% elif message.tags == 'warning' %}bg-amber-950/30 border-amber-900/40 text-amber-400
                   {% else %}bg-surface-card border-surface-border text-gray-300{% endif %}"
            data-message>
         {{ message }}
