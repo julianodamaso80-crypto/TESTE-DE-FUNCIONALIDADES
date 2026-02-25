@@ -1,6 +1,7 @@
 import logging
 
 from celery import shared_task
+from django.utils import timezone
 
 logger = logging.getLogger('spritetest.tasks')
 
@@ -11,28 +12,20 @@ def run_test_execution(self, run_id: str):
     from .executor import simulate_test_execution
     from .models import TestRun
 
-    logger.info("Starting test execution for run_id=%s", run_id)
-
     try:
         run = TestRun.objects.get(id=run_id)
     except TestRun.DoesNotExist:
-        raise ValueError(f"TestRun not found: {run_id}")
+        logger.error("TestRun %s não encontrado", run_id)
+        return
 
     try:
+        logger.info("Iniciando execução async: %s", run_id)
         simulate_test_execution(run)
-        logger.info(
-            "Test execution completed for run_id=%s — status=%s, pass_rate=%s%%",
-            run_id, run.status, run.pass_rate,
-        )
+        logger.info("Execução concluída: %s status=%s", run_id, run.status)
     except Exception as exc:
-        logger.error("Test execution failed for run_id=%s: %s", run_id, exc)
         run.status = 'error'
         run.error_message = str(exc)
-        run.save(update_fields=['status', 'error_message'])
-        raise
-
-    return {
-        'run_id': run_id,
-        'status': run.status,
-        'pass_rate': run.pass_rate,
-    }
+        run.completed_at = timezone.now()
+        run.save(update_fields=['status', 'error_message', 'completed_at'])
+        logger.error("Erro na execução %s: %s", run_id, exc)
+        raise self.retry(exc=exc, countdown=10)
