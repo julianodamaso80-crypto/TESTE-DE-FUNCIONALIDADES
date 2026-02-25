@@ -6,7 +6,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .ai_service import generate_test_cases
-from .executor import simulate_test_execution
+from .executor import run_test_execution_smart
 from .forms import TestProjectForm
 from .models import TestCase, TestProject, TestRun
 
@@ -110,7 +110,7 @@ def execute_run(request, run_id):
         messages.info(request, 'Execução iniciada em background...')
     except Exception:
         # Redis offline: fallback síncrono
-        simulate_test_execution(run)
+        run_test_execution_smart(run)
         messages.success(request, f'Execução concluída: {run.pass_rate}% pass rate')
 
     return redirect('testing:run_detail', run_id=run.id)

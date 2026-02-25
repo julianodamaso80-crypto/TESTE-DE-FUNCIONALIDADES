@@ -9,7 +9,7 @@ logger = logging.getLogger('spritetest.tasks')
 @shared_task(bind=True, max_retries=3, name='testing.run_test_execution')
 def run_test_execution(self, run_id: str):
     """Executa testes de forma assíncrona via Celery."""
-    from .executor import simulate_test_execution
+    from .executor import run_test_execution_smart
     from .models import TestRun
 
     try:
@@ -20,7 +20,7 @@ def run_test_execution(self, run_id: str):
 
     try:
         logger.info("Iniciando execução async: %s", run_id)
-        simulate_test_execution(run)
+        run_test_execution_smart(run)
         logger.info("Execução concluída: %s status=%s", run_id, run.status)
     except Exception as exc:
         run.status = 'error'

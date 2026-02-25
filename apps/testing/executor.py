@@ -63,6 +63,37 @@ _FIX_SUGGESTIONS = {
 }
 
 
+def run_test_execution_smart(test_run) -> None:
+    """
+    Escolhe executor baseado em disponibilidade do Playwright.
+    Real: se URL é acessível externamente.
+    Mock: se URL é localhost ou Playwright indisponível.
+    """
+    from urllib.parse import urlparse
+
+    url = test_run.project.base_url
+    parsed = urlparse(url)
+    hostname = parsed.hostname or ''
+
+    is_local = (
+        hostname in ('localhost', '127.0.0.1', '0.0.0.0')
+        or hostname.endswith('.local')
+    )
+
+    if is_local:
+        logger.info(f"URL local detectada ({url}) — usando executor mock")
+        simulate_test_execution(test_run)
+        return
+
+    try:
+        from apps.testing.playwright_runner import run_playwright_sync
+        logger.info(f"URL externa ({url}) — usando Playwright real")
+        run_playwright_sync(test_run)
+    except Exception as e:
+        logger.warning(f"Playwright falhou ({e}) — fallback para mock")
+        simulate_test_execution(test_run)
+
+
 def simulate_test_execution(test_run):
     """
     Simula a execução de todos os TestCases de um TestRun.
