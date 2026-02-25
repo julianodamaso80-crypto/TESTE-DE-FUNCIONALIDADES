@@ -28,7 +28,7 @@
 {% if run.status == 'running' %}
 <div class="card mb-6 text-center py-12">
   <div class="flex flex-col items-center gap-4">
-    <svg class="animate-spin w-10 h-10 text-blue-400" fill="none" viewBox="0 0 24 24">
+    <svg class="animate-spin w-10 h-10 text-primary-500" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
     </svg>
@@ -97,7 +97,7 @@
     {% if run.status in 'passed,failed' %}
     <div class="flex items-center gap-2">
       <span class="text-sm text-gray-400">Pass Rate:</span>
-      <span class="text-lg font-bold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+      <span class="text-lg font-bold {% if run.pass_rate >= 80 %}text-primary-500{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
         {{ run.pass_rate }}%
       </span>
     </div>
@@ -143,7 +143,7 @@
     {% for case in cases %}
     <div class="card !p-0 overflow-hidden">
       <!-- Case Header -->
-      <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-800/50 transition-colors"
+      <div class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-surface-hover transition-colors"
            onclick="this.nextElementSibling.classList.toggle('hidden')">
 
         <!-- Status Icon -->
@@ -189,7 +189,7 @@
       </div>
 
       <!-- Collapsible Details -->
-      <div class="hidden border-t border-gray-800 px-4 py-3 bg-gray-900/50">
+      <div class="hidden border-t border-surface-border px-4 py-3 bg-dark-900/50">
         <!-- Steps -->
         {% if case.steps %}
         <div class="mb-3">
@@ -215,9 +215,9 @@
 
         <!-- AI Fix Suggestion -->
         {% if case.ai_fix_suggestion %}
-        <div class="p-3 rounded-lg bg-blue-900/20 border border-blue-900/30">
-          <p class="text-xs font-medium text-blue-400 uppercase mb-1">AI Fix Suggestion</p>
-          <p class="text-sm text-blue-300">{{ case.ai_fix_suggestion }}</p>
+        <div class="p-3 rounded-lg bg-primary-950/30 border border-primary-900/40">
+          <p class="text-xs font-medium text-primary-400 uppercase mb-1">AI Fix Suggestion</p>
+          <p class="text-sm text-primary-300">{{ case.ai_fix_suggestion }}</p>
         </div>
         {% endif %}
       </div>
