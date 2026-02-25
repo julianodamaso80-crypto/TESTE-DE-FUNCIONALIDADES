@@ -1,5 +1,14 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+
+from apps.dashboard.analytics import (
+    get_pass_rate_trend,
+    get_runs_last_30_days,
+    get_summary_stats,
+    get_top_failing_projects,
+)
 
 
 @login_required
@@ -7,32 +16,35 @@ def home(request):
     workspace = request.workspace
     stats = {
         'total_runs': 0,
-        'pass_rate': '\u2014',
+        'runs_last_30': 0,
+        'pass_rate_30': 0,
+        'pass_rate_trend': 0,
         'total_projects': 0,
+        'bugs_caught': 0,
     }
     recent_runs = []
+    runs_chart = []
+    trend_chart = []
+    failing = []
 
     if workspace:
-        from apps.testing.models import TestProject, TestRun
+        from apps.testing.models import TestRun
 
-        projects = TestProject.objects.filter(workspace=workspace, is_active=True)
-        runs = TestRun.objects.filter(project__workspace=workspace)
-        completed_runs = runs.exclude(status__in=['pending', 'running'])
+        stats = get_summary_stats(workspace)
+        runs_chart = get_runs_last_30_days(workspace)
+        trend_chart = get_pass_rate_trend(workspace)
+        failing = get_top_failing_projects(workspace)
+        recent_runs = TestRun.objects.filter(
+            project__workspace=workspace
+        ).select_related('project').order_by('-created_at')[:8]
 
-        stats['total_projects'] = projects.count()
-        stats['total_runs'] = runs.count()
-
-        if completed_runs.exists():
-            total_rate = sum(r.pass_rate for r in completed_runs)
-            stats['pass_rate'] = f"{round(total_rate / completed_runs.count(), 1)}%"
-
-        recent_runs = runs.select_related('project', 'triggered_by')[:5]
-
-    context = {
+    return render(request, 'dashboard/home.html', {
         'stats': stats,
         'recent_runs': recent_runs,
-    }
-    return render(request, 'dashboard/home.html', context)
+        'runs_chart_json': json.dumps(runs_chart),
+        'trend_chart_json': json.dumps(trend_chart),
+        'failing_projects': failing,
+    })
 
 
 @login_required

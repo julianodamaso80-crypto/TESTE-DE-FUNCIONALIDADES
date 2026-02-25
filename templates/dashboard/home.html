@@ -13,22 +13,33 @@
 
 {% block content %}
 
+<!-- Greeting -->
+<div class="mb-6">
+  <h2 class="text-xl font-bold text-white">
+    {% now "H" as current_hour %}
+    {% if current_hour|add:"0" < 12 %}Bom dia{% elif current_hour|add:"0" < 18 %}Boa tarde{% else %}Boa noite{% endif %}, {{ request.user.display_name }}
+  </h2>
+  <p class="text-sm text-gray-500 mt-1">Aqui está o resumo dos seus testes.</p>
+</div>
+
 <!-- Stats Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
+  <!-- Runs (30d) -->
   <div class="card">
     <div class="flex items-center justify-between mb-3">
-      <span class="text-sm text-gray-400">Test Runs</span>
+      <span class="text-sm text-gray-400">Runs (30d)</span>
       <div class="w-8 h-8 rounded-lg bg-primary-900/40 flex items-center justify-center">
         <svg class="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
         </svg>
       </div>
     </div>
-    <p class="text-3xl font-bold text-white">{{ stats.total_runs|default:'0' }}</p>
-    <p class="text-xs text-gray-500 mt-1">este mês</p>
+    <p class="text-3xl font-bold text-white">{{ stats.runs_last_30 }}</p>
+    <p class="text-xs text-gray-500 mt-1">{{ stats.total_runs }} total</p>
   </div>
 
+  <!-- Pass Rate -->
   <div class="card">
     <div class="flex items-center justify-between mb-3">
       <span class="text-sm text-gray-400">Pass Rate</span>
@@ -38,10 +49,18 @@
         </svg>
       </div>
     </div>
-    <p class="text-3xl font-bold text-white">{{ stats.pass_rate|default:'—' }}</p>
-    <p class="text-xs text-gray-500 mt-1">média dos últimos 30 dias</p>
+    <div class="flex items-end gap-2">
+      <p class="text-3xl font-bold text-white">{{ stats.pass_rate_30 }}%</p>
+      {% if stats.pass_rate_trend > 0 %}
+        <span class="text-xs text-emerald-400 mb-1">&uarr; +{{ stats.pass_rate_trend }}%</span>
+      {% elif stats.pass_rate_trend < 0 %}
+        <span class="text-xs text-red-400 mb-1">&darr; {{ stats.pass_rate_trend }}%</span>
+      {% endif %}
+    </div>
+    <p class="text-xs text-gray-500 mt-1">vs. 30 dias anteriores</p>
   </div>
 
+  <!-- Projects -->
   <div class="card">
     <div class="flex items-center justify-between mb-3">
       <span class="text-sm text-gray-400">Projetos</span>
@@ -51,66 +70,129 @@
         </svg>
       </div>
     </div>
-    <p class="text-3xl font-bold text-white">{{ stats.total_projects|default:'0' }}</p>
+    <p class="text-3xl font-bold text-white">{{ stats.total_projects }}</p>
     <p class="text-xs text-gray-500 mt-1">projetos ativos</p>
   </div>
 
+  <!-- Bugs Caught -->
   <div class="card">
     <div class="flex items-center justify-between mb-3">
-      <span class="text-sm text-gray-400">Plano</span>
-      <div class="w-8 h-8 rounded-lg bg-amber-900/40 flex items-center justify-center">
-        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      <span class="text-sm text-gray-400">Bugs Caught</span>
+      <div class="w-8 h-8 rounded-lg bg-red-900/40 flex items-center justify-center">
+        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
         </svg>
       </div>
     </div>
-    <p class="text-2xl font-bold text-white capitalize">{{ request.workspace.plan|default:'free' }}</p>
-    <p class="text-xs text-primary-400 mt-1 cursor-pointer hover:underline">
-      {% if request.workspace.plan == 'free' %}Upgrade para Pro &rarr;{% else %}Gerenciar plano{% endif %}
-    </p>
+    <p class="text-3xl font-bold text-white">{{ stats.bugs_caught }}</p>
+    <p class="text-xs text-gray-500 mt-1">falhas nos ultimos 30 dias</p>
   </div>
 
 </div>
 
-<!-- Recent Runs or Empty State -->
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+  <!-- Bar Chart — Runs per day -->
+  <div class="card lg:col-span-2">
+    <h2 class="text-base font-semibold text-white mb-4">Execucoes nos ultimos 30 dias</h2>
+    <div style="position:relative;height:280px">
+      <canvas id="runsChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Top Failing Projects -->
+  <div class="card">
+    <h2 class="text-base font-semibold text-white mb-4">Menor Pass Rate</h2>
+    {% if failing_projects %}
+    <div class="space-y-4">
+      {% for project in failing_projects %}
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-sm text-gray-300 truncate">{{ project.name }}</span>
+          <span class="text-sm font-semibold {% if project.avg_pass_rate >= 80 %}text-emerald-400{% elif project.avg_pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+            {{ project.avg_pass_rate }}%
+          </span>
+        </div>
+        <div class="w-full bg-gray-800 rounded-full h-2">
+          <div class="h-2 rounded-full transition-all {% if project.avg_pass_rate >= 80 %}bg-emerald-500{% elif project.avg_pass_rate >= 50 %}bg-amber-500{% else %}bg-red-500{% endif %}"
+               style="width: {{ project.avg_pass_rate }}%"></div>
+        </div>
+        <p class="text-xs text-gray-600 mt-0.5">{{ project.total_runs }} runs</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500 text-center py-8">Nenhum projeto com dados suficientes</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Trend Chart -->
+<div class="card mb-6">
+  <h2 class="text-base font-semibold text-white mb-4">Tendencia de Pass Rate</h2>
+  <div style="position:relative;height:240px">
+    <canvas id="trendChart"></canvas>
+  </div>
+</div>
+
+<!-- Recent Runs -->
 {% if recent_runs %}
 <div class="card">
-  <h2 class="text-base font-semibold text-white mb-4">Recent Test Runs</h2>
-  <div class="space-y-2">
-    {% for run in recent_runs %}
-    <a href="{% url 'testing:run_detail' run_id=run.id %}"
-       class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-800/50 transition-colors">
-      <div class="flex items-center gap-3 min-w-0">
-        {% if run.status == 'passed' %}
-          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></div>
-        {% elif run.status == 'failed' %}
-          <div class="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0"></div>
-        {% elif run.status == 'pending' %}
-          <div class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></div>
-        {% else %}
-          <div class="w-2.5 h-2.5 rounded-full bg-gray-500 shrink-0"></div>
-        {% endif %}
-        <div class="min-w-0">
-          <p class="text-sm font-medium text-gray-200 truncate">{{ run.project.name }}</p>
-          <p class="text-xs text-gray-500">{{ run.created_at|timesince }} ago</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3 shrink-0">
-        {% if run.status != 'pending' %}
-        <span class="text-sm font-semibold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
-          {{ run.pass_rate }}%
-        </span>
-        {% endif %}
-        <span class="px-2 py-0.5 rounded text-xs font-medium
-                     {% if run.status == 'passed' %}bg-emerald-900/40 text-emerald-300
-                     {% elif run.status == 'failed' %}bg-red-900/40 text-red-300
-                     {% elif run.status == 'pending' %}bg-amber-900/40 text-amber-300
-                     {% else %}bg-gray-800 text-gray-400{% endif %}">
-          {{ run.status|title }}
-        </span>
-      </div>
-    </a>
-    {% endfor %}
+  <h2 class="text-base font-semibold text-white mb-4">Execucoes Recentes</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-surface-border text-gray-500 text-xs uppercase">
+          <th class="text-left py-2 px-3 font-medium">Projeto</th>
+          <th class="text-left py-2 px-3 font-medium">Status</th>
+          <th class="text-left py-2 px-3 font-medium">Pass Rate</th>
+          <th class="text-left py-2 px-3 font-medium">Data</th>
+          <th class="text-right py-2 px-3 font-medium"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in recent_runs %}
+        <tr class="border-b border-surface-border/50 hover:bg-surface-hover/30 transition-colors">
+          <td class="py-3 px-3">
+            <span class="text-gray-200 font-medium">{{ run.project.name }}</span>
+          </td>
+          <td class="py-3 px-3">
+            {% if run.status == 'passed' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/40 text-emerald-300">Passed</span>
+            {% elif run.status == 'failed' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-900/40 text-red-300">Failed</span>
+            {% elif run.status == 'running' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-900/40 text-blue-300">Running</span>
+            {% elif run.status == 'pending' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-900/40 text-amber-300">Pending</span>
+            {% else %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-800 text-gray-400">{{ run.status|title }}</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-3">
+            {% if run.status in 'passed,failed' %}
+            <span class="font-semibold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+              {{ run.pass_rate }}%
+            </span>
+            {% else %}
+            <span class="text-gray-600">&mdash;</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-3 text-gray-500">
+            {{ run.created_at|timesince }} ago
+          </td>
+          <td class="py-3 px-3 text-right">
+            <a href="{% url 'testing:run_detail' run_id=run.id %}"
+               class="text-primary-400 hover:text-primary-300 text-xs hover:underline">
+              Ver &rarr;
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% else %}
@@ -123,7 +205,7 @@
   </div>
   <h2 class="text-xl font-bold text-white mb-3">Crie seu primeiro teste</h2>
   <p class="text-gray-400 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
-    Insira a URL da sua aplicação e nossa IA irá gerar casos de teste automaticamente em segundos.
+    Insira a URL da sua aplicacao e nossa IA ira gerar casos de teste automaticamente em segundos.
   </p>
   <a href="{% url 'testing:new_test' %}" class="btn-primary mx-auto inline-flex">
     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,4 +216,81 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const runsData = {{ runs_chart_json|safe }};
+const trendData = {{ trend_chart_json|safe }};
+
+// Chart defaults
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.borderColor = '#2e2e2e';
+
+// Bar chart — Runs per day
+new Chart(document.getElementById('runsChart'), {
+  type: 'bar',
+  data: {
+    labels: runsData.map(d => d.date),
+    datasets: [
+      {
+        label: 'Passou',
+        data: runsData.map(d => d.passed),
+        backgroundColor: 'rgba(163,230,53,0.7)',
+        borderRadius: 4,
+      },
+      {
+        label: 'Falhou',
+        data: runsData.map(d => d.failed),
+        backgroundColor: 'rgba(248,113,113,0.7)',
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#9ca3af', usePointStyle: true, pointStyle: 'circle' } }
+    },
+    scales: {
+      x: { stacked: true, ticks: { color: '#6b7280', maxRotation: 45 }, grid: { color: '#2e2e2e' } },
+      y: { stacked: true, ticks: { color: '#6b7280', stepSize: 1 }, grid: { color: '#2e2e2e' }, beginAtZero: true }
+    }
+  }
+});
+
+// Line chart — Pass Rate Trend
+if (trendData.length > 0) {
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: trendData.map(d => d.date),
+      datasets: [{
+        label: 'Pass Rate %',
+        data: trendData.map(d => d.pass_rate),
+        borderColor: '#a3e635',
+        backgroundColor: 'rgba(163,230,53,0.1)',
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#a3e635',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', usePointStyle: true, pointStyle: 'circle' } }
+      },
+      scales: {
+        x: { ticks: { color: '#6b7280' }, grid: { color: '#2e2e2e' } },
+        y: { min: 0, max: 100, ticks: { color: '#6b7280', callback: v => v + '%' }, grid: { color: '#2e2e2e' } }
+      }
+    }
+  });
+}
+</script>
 {% endblock %}
