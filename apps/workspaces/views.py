@@ -1,11 +1,24 @@
+import uuid
+from datetime import timedelta
+
+from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+from apps.workspaces.models import WorkspaceInvitation, WorkspaceMembership
 
 
 @login_required
 def members(request):
-    memberships = request.workspace.memberships.select_related('user').all() if request.workspace else []
+    memberships = (
+        request.workspace.memberships.select_related('user').all()
+        if request.workspace
+        else []
+    )
     return render(request, 'workspaces/members.html', {
         'members': memberships,
     })
@@ -27,7 +40,6 @@ def workspace_settings(request):
                 messages.success(request, 'Nome atualizado!')
         elif action == 'remove_member' and is_owner:
             member_id = request.POST.get('member_id')
-            from apps.workspaces.models import WorkspaceMembership
             m = WorkspaceMembership.objects.filter(
                 id=member_id, workspace=workspace
             ).exclude(user=request.user).first()
@@ -61,7 +73,9 @@ def integrations(request):
             from apps.workspaces.notifications import send_slack_notification
 
             class FakeRun:
-                project = type('P', (), {'name': 'SpriteTest', 'base_url': 'https://spritetest.io'})()
+                project = type(
+                    'P', (), {'name': 'SpriteTest', 'base_url': 'https://spritetest.io'}
+                )()
                 status = 'passed'
                 pass_rate = 100
                 passed_cases = 8
@@ -76,3 +90,104 @@ def integrations(request):
                 messages.error(request, 'Slack falhou — verifique a URL do webhook.')
         return redirect('workspaces:integrations')
     return render(request, 'workspaces/integrations.html', {'workspace': workspace})
+
+
+@login_required
+def invite_member(request):
+    workspace = request.workspace
+    membership = workspace.memberships.filter(user=request.user).first()
+    if not membership or membership.role not in ['owner', 'admin']:
+        messages.error(request, 'Sem permissão para convidar membros.')
+        return redirect('workspaces:settings')
+
+    limits = workspace.get_plan_limits()
+    current_count = workspace.memberships.count()
+    if current_count >= limits['members']:
+        messages.error(
+            request, f'Limite de {limits["members"]} membros atingido. Faça upgrade.'
+        )
+        return redirect('billing:pricing')
+
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        role = request.POST.get('role', 'member')
+        if not email:
+            messages.error(request, 'Email obrigatório.')
+            return redirect('workspaces:invite')
+
+        if workspace.memberships.filter(user__email=email).exists():
+            messages.error(request, 'Este usuário já é membro.')
+            return redirect('workspaces:invite')
+
+        inv, created = WorkspaceInvitation.objects.get_or_create(
+            workspace=workspace,
+            email=email,
+            defaults={'invited_by': request.user, 'role': role},
+        )
+        if not created:
+            inv.token = uuid.uuid4()
+            inv.accepted = False
+            inv.expires_at = timezone.now() + timedelta(days=7)
+            inv.save()
+
+        invite_url = request.build_absolute_uri(
+            f'/workspace/invite/accept/{inv.token}/'
+        )
+        try:
+            send_mail(
+                f'Convite para {workspace.name} no SpriteTest',
+                f'Você foi convidado para {workspace.name}.\n'
+                f'Acesse: {invite_url}\nExpira em 7 dias.',
+                django_settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+        messages.success(request, f'Convite enviado para {email}! URL: {invite_url}')
+        return redirect('workspaces:settings')
+
+    pending = WorkspaceInvitation.objects.filter(workspace=workspace, accepted=False)
+    return render(request, 'workspaces/invite.html', {
+        'workspace': workspace,
+        'pending_invites': pending,
+        'slots_remaining': limits['members'] - current_count,
+    })
+
+
+def accept_invite(request, token):
+    inv = get_object_or_404(WorkspaceInvitation, token=token, accepted=False)
+
+    if inv.is_expired:
+        messages.error(request, 'Convite expirado.')
+        return redirect('core:home')
+
+    if not request.user.is_authenticated:
+        request.session['pending_invite_token'] = str(token)
+        return redirect(f'/auth/signup/?next=/workspace/invite/accept/{token}/')
+
+    if request.user.email.lower() != inv.email.lower():
+        messages.error(request, f'Este convite é para {inv.email}.')
+        return redirect('dashboard:home')
+
+    WorkspaceMembership.objects.get_or_create(
+        workspace=inv.workspace,
+        user=request.user,
+        defaults={'role': inv.role},
+    )
+    inv.accepted = True
+    inv.save(update_fields=['accepted'])
+    messages.success(request, f'Bem-vindo ao workspace {inv.workspace.name}!')
+    return redirect('dashboard:home')
+
+
+@login_required
+@require_POST
+def cancel_invite(request, invite_id):
+    inv = get_object_or_404(
+        WorkspaceInvitation, id=invite_id, workspace=request.workspace
+    )
+    inv.delete()
+    messages.success(request, 'Convite cancelado.')
+    return redirect('workspaces:invite')

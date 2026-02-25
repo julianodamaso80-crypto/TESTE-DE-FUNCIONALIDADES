@@ -1,0 +1,200 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Planos & Preços{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+
+  <!-- Header -->
+  <div class="text-center mb-10">
+    <h2 class="text-2xl font-bold text-white mb-2">Planos & Preços</h2>
+    <p class="text-gray-400">Escolha o plano ideal para sua equipe</p>
+  </div>
+
+  <!-- Stripe not configured banner -->
+  {% if not stripe_publishable_key %}
+  <div class="mb-8 px-4 py-3 rounded-lg border border-amber-800 bg-amber-900/30 text-amber-300 text-sm flex items-center gap-2">
+    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+    </svg>
+    <span>Pagamentos em breve — Stripe não configurado no ambiente atual.</span>
+  </div>
+  {% endif %}
+
+  <!-- Pricing Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Free Plan -->
+    <div class="bg-surface-card border border-surface-border rounded-xl p-6 flex flex-col">
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-white mb-1">Free</h3>
+        <p class="text-gray-400 text-sm">Para começar a testar</p>
+      </div>
+
+      <div class="mb-6">
+        <span class="text-3xl font-bold text-white">$0</span>
+        <span class="text-gray-500 text-sm">/mês</span>
+      </div>
+
+      <ul class="space-y-3 mb-8 flex-1">
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          50 test runs/mês
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          2 projetos
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          3 membros
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-500">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Sem API access
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-500">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Sem scheduling
+        </li>
+      </ul>
+
+      {% if current_plan == 'free' %}
+      <button disabled class="w-full py-2.5 px-4 rounded-lg bg-surface text-gray-500 text-sm font-medium cursor-not-allowed">
+        Plano atual
+      </button>
+      {% else %}
+      <span class="w-full py-2.5 px-4 rounded-lg bg-surface text-gray-400 text-sm font-medium text-center">
+        Free
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Pro Plan (highlighted) -->
+    <div class="bg-surface-card border-2 border-primary-800/60 rounded-xl p-6 flex flex-col relative shadow-lg shadow-primary-500/5">
+      <!-- Popular badge -->
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+        <span class="bg-primary-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full">
+          POPULAR
+        </span>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-white mb-1">Pro</h3>
+        <p class="text-gray-400 text-sm">Para times em crescimento</p>
+      </div>
+
+      <div class="mb-6">
+        <span class="text-3xl font-bold text-white">$69</span>
+        <span class="text-gray-500 text-sm">/mês</span>
+      </div>
+
+      <ul class="space-y-3 mb-8 flex-1">
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          1.000 test runs/mês
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Projetos ilimitados
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          20 membros
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          API access
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Scheduling automático
+        </li>
+      </ul>
+
+      {% if current_plan == 'pro' %}
+      <a href="{% url 'billing:manage' %}"
+         class="w-full py-2.5 px-4 rounded-lg bg-surface hover:bg-surface-hover text-gray-200 text-sm font-medium text-center transition-colors">
+        Gerenciar assinatura
+      </a>
+      {% else %}
+      <a href="{% url 'billing:checkout' plan='pro' %}"
+         class="w-full py-2.5 px-4 rounded-lg bg-primary-500 hover:bg-primary-600 text-dark-900 text-sm font-bold text-center transition-colors">
+        Fazer upgrade
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Enterprise Plan -->
+    <div class="bg-surface-card border border-surface-border rounded-xl p-6 flex flex-col">
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-white mb-1">Enterprise</h3>
+        <p class="text-gray-400 text-sm">Para grandes organizações</p>
+      </div>
+
+      <div class="mb-6">
+        <span class="text-3xl font-bold text-white">Custom</span>
+      </div>
+
+      <ul class="space-y-3 mb-8 flex-1">
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Test runs ilimitados
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Projetos ilimitados
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Membros ilimitados
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          90 dias retenção de vídeos
+        </li>
+        <li class="flex items-center gap-2 text-sm text-gray-300">
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Suporte prioritário
+        </li>
+      </ul>
+
+      <a href="mailto:sales@spritetest.com"
+         class="w-full py-2.5 px-4 rounded-lg border border-surface-border hover:bg-surface-hover text-gray-200 text-sm font-medium text-center transition-colors">
+        Falar com vendas
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

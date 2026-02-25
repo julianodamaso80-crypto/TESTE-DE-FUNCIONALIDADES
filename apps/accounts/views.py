@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 
 
 @login_required
@@ -91,7 +92,38 @@ def profile(request):
     except Exception:
         pass
 
+    theme_choices = [
+        ('dark', 'Dark', '#1a1a1a'),
+        ('darker', 'Darker', '#111111'),
+        ('midnight', 'Midnight', '#090e1a'),
+    ]
+    density_choices = [
+        ('compact', 'Compact'),
+        ('comfortable', 'Comfortable'),
+        ('spacious', 'Spacious'),
+    ]
     return render(request, 'accounts/profile.html', {
         'workspaces': workspaces,
         'api_keys_count': api_keys_count,
+        'theme_choices': theme_choices,
+        'density_choices': density_choices,
     })
+
+
+@login_required
+@require_POST
+def update_preferences(request):
+    theme = request.POST.get('ui_theme', 'dark')
+    density = request.POST.get('ui_density', 'comfortable')
+    valid_themes = ['dark', 'darker', 'midnight']
+    valid_densities = ['compact', 'comfortable', 'spacious']
+    if theme in valid_themes:
+        request.user.ui_theme = theme
+    if density in valid_densities:
+        request.user.ui_density = density
+    request.user.save(update_fields=['ui_theme', 'ui_density'])
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        return JsonResponse({'status': 'ok', 'theme': theme, 'density': density})
+    messages.success(request, 'Preferências salvas!')
+    return redirect(request.META.get('HTTP_REFERER', 'accounts:profile'))

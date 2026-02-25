@@ -1,0 +1,144 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Convidar Membros{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-semibold text-white">Convidar Membros</h1>
+      <p class="text-sm text-gray-400 mt-1">Envie convites por email para seu workspace</p>
+    </div>
+    <a href="{% url 'workspaces:settings' %}"
+       class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Voltar
+    </a>
+  </div>
+
+  <!-- Limite atingido -->
+  {% if slots_remaining <= 0 %}
+  <div class="rounded-xl border border-amber-500/30 bg-amber-950/20 p-5">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-amber-300">Limite de membros atingido</p>
+        <p class="text-xs text-gray-400 mt-0.5">Seu plano {{ workspace.plan|upper }} nao permite mais membros. Faca upgrade para adicionar mais pessoas.</p>
+      </div>
+      <a href="{% url 'billing:pricing' %}" class="btn-primary text-sm shrink-0">Upgrade</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Card: Enviar Convite -->
+  {% if slots_remaining > 0 %}
+  <div class="card">
+    <h2 class="text-lg font-semibold text-white mb-4">Enviar Convite</h2>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="sm:col-span-2">
+          <label for="invite-email" class="block text-xs font-medium text-gray-400 mb-1">Email</label>
+          <input type="email" name="email" id="invite-email" required placeholder="membro@empresa.com"
+                 class="input-field w-full">
+        </div>
+        <div>
+          <label for="invite-role" class="block text-xs font-medium text-gray-400 mb-1">Role</label>
+          <select name="role" id="invite-role" class="input-field w-full">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-500">{{ slots_remaining }} vaga{{ slots_remaining|pluralize:"s" }} restante{{ slots_remaining|pluralize:"s" }} no plano {{ workspace.plan|upper }}</span>
+        <button type="submit" class="btn-primary text-sm">
+          <svg class="w-4 h-4 mr-1.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          Enviar Convite
+        </button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Card: Convites Pendentes -->
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Convites Pendentes</h2>
+      <span class="text-xs text-gray-500">{{ pending_invites.count }} convite{{ pending_invites.count|pluralize:"s" }}</span>
+    </div>
+
+    {% if pending_invites %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-surface-border">
+            <th class="text-left text-xs font-medium text-gray-500 pb-3">Email</th>
+            <th class="text-left text-xs font-medium text-gray-500 pb-3">Role</th>
+            <th class="text-left text-xs font-medium text-gray-500 pb-3">Enviado</th>
+            <th class="text-left text-xs font-medium text-gray-500 pb-3">Status</th>
+            <th class="text-right text-xs font-medium text-gray-500 pb-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-surface-border">
+          {% for inv in pending_invites %}
+          <tr>
+            <td class="py-3">
+              <span class="text-gray-200">{{ inv.email }}</span>
+            </td>
+            <td class="py-3">
+              {% if inv.role == 'admin' %}
+                <span class="text-xs font-medium text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">Admin</span>
+              {% else %}
+                <span class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded capitalize">{{ inv.role }}</span>
+              {% endif %}
+            </td>
+            <td class="py-3">
+              <span class="text-xs text-gray-500">{{ inv.created_at|timesince }} atras</span>
+            </td>
+            <td class="py-3">
+              {% if inv.is_expired %}
+                <span class="text-xs text-red-400 bg-red-400/10 px-2 py-0.5 rounded">Expirado</span>
+              {% else %}
+                <span class="text-xs text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">Pendente</span>
+              {% endif %}
+            </td>
+            <td class="py-3 text-right">
+              <form method="post" action="{% url 'workspaces:cancel_invite' inv.id %}" class="inline"
+                    onsubmit="return confirm('Cancelar convite para {{ inv.email }}?')">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-red-400 hover:text-red-300 transition-colors">
+                  Cancelar
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+      <div class="w-12 h-12 rounded-full bg-dark-900 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <p class="text-sm text-gray-500">Nenhum convite pendente</p>
+      <p class="text-xs text-gray-600 mt-1">Convites enviados aparecerão aqui</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

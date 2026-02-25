@@ -75,6 +75,52 @@
     </form>
   </div>
 
+  <!-- Aparencia -->
+  <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
+    <h2 class="text-lg font-semibold text-white mb-6">Aparência</h2>
+
+    <form method="POST" action="{% url 'accounts:update_preferences' %}" id="preferencesForm">
+      {% csrf_token %}
+
+      <!-- Theme -->
+      <div class="mb-5">
+        <label class="block text-xs font-medium text-gray-400 mb-3">Tema</label>
+        <div class="flex items-center gap-4">
+          {% for value, label, color in theme_choices %}
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="radio" name="ui_theme" value="{{ value }}"
+                   {% if user.ui_theme == value %}checked{% endif %}
+                   onchange="document.documentElement.setAttribute('data-theme', this.value)"
+                   class="hidden peer">
+            <span class="w-6 h-6 rounded-full border-2 border-surface-border peer-checked:border-primary-400 transition-colors"
+                  style="background:{{ color }}"></span>
+            <span class="text-sm text-gray-300 group-hover:text-white peer-checked:text-white transition-colors">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Density -->
+      <div class="mb-5">
+        <label class="block text-xs font-medium text-gray-400 mb-3">Densidade</label>
+        <div class="flex items-center gap-4">
+          {% for value, label in density_choices %}
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="radio" name="ui_density" value="{{ value }}"
+                   {% if user.ui_density == value %}checked{% endif %}
+                   onchange="document.documentElement.setAttribute('data-density', this.value)"
+                   class="hidden peer">
+            <span class="w-4 h-4 rounded-full border-2 border-surface-border peer-checked:border-primary-400 peer-checked:bg-primary-400 transition-colors"></span>
+            <span class="text-sm text-gray-300 group-hover:text-white peer-checked:text-white transition-colors">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary-400 text-dark-900 text-sm font-semibold hover:bg-primary-300 transition-colors">Salvar preferências</button>
+    </form>
+  </div>
+
   <!-- Meus Workspaces -->
   <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
     <h2 class="text-lg font-semibold text-white mb-4">Meus Workspaces</h2>

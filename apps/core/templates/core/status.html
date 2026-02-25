@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="30">
+  <title>SpriteTest — System Status</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #1a1a1a; }
+  </style>
+</head>
+<body class="min-h-screen text-gray-100 antialiased">
+
+  <!-- Header -->
+  <header class="border-b" style="border-color:#2e2e2e;background:#1a1a1a">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:#a3e635">
+          <svg class="w-5 h-5" style="color:#1a1a1a" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <span class="font-semibold text-white text-lg">Sprite<span style="color:#a3e635">Test</span></span>
+      </a>
+      <span class="text-sm text-gray-500 font-medium">Status Page</span>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+
+    <!-- Overall Status Hero -->
+    {% if status.overall == 'operational' %}
+    <div class="rounded-2xl p-8 mb-8 border text-center" style="background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.25)">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style="background:rgba(34,197,94,0.15)">
+        <svg class="w-8 h-8" style="color:#22c55e" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-white mb-1">All Systems Operational</h1>
+      <p class="text-sm" style="color:#22c55e">Everything is running smoothly</p>
+    </div>
+    {% elif status.overall == 'degraded' %}
+    <div class="rounded-2xl p-8 mb-8 border text-center" style="background:rgba(234,179,8,0.08);border-color:rgba(234,179,8,0.25)">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style="background:rgba(234,179,8,0.15)">
+        <span class="text-3xl">&#9888;</span>
+      </div>
+      <h1 class="text-2xl font-bold text-white mb-1">Degraded Performance</h1>
+      <p class="text-sm" style="color:#eab308">Some systems are experiencing issues</p>
+    </div>
+    {% elif status.overall == 'outage' %}
+    <div class="rounded-2xl p-8 mb-8 border text-center" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25)">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style="background:rgba(239,68,68,0.15)">
+        <svg class="w-8 h-8" style="color:#ef4444" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold text-white mb-1">Partial Outage Detected</h1>
+      <p class="text-sm" style="color:#ef4444">We are investigating the issue</p>
+    </div>
+    {% endif %}
+
+    <!-- Components List -->
+    <div class="rounded-xl border overflow-hidden mb-8" style="background:#242424;border-color:#2e2e2e">
+      <div class="px-5 py-3.5 border-b" style="border-color:#2e2e2e">
+        <h2 class="text-sm font-semibold text-gray-300">Components</h2>
+      </div>
+      {% for name, component in status.components.items %}
+      <div class="flex items-center justify-between px-5 py-4 {% if not forloop.last %}border-b{% endif %}" style="border-color:#2e2e2e">
+        <div class="flex items-center gap-3">
+          {% if component.status == 'operational' %}
+          <div class="w-2.5 h-2.5 rounded-full" style="background:#22c55e"></div>
+          {% elif component.status == 'degraded' %}
+          <div class="w-2.5 h-2.5 rounded-full" style="background:#eab308"></div>
+          {% else %}
+          <div class="w-2.5 h-2.5 rounded-full" style="background:#ef4444"></div>
+          {% endif %}
+          <span class="text-sm font-medium text-white">{{ name }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          {% if component.latency_ms %}
+          <span class="text-xs text-gray-500">{{ component.latency_ms }}ms</span>
+          {% endif %}
+          {% if component.status == 'operational' %}
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background:rgba(34,197,94,0.1);color:#22c55e">Operational</span>
+          {% elif component.status == 'degraded' %}
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background:rgba(234,179,8,0.1);color:#eab308">Degraded</span>
+          {% else %}
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background:rgba(239,68,68,0.1);color:#ef4444">Outage</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Response Time Card -->
+    {% for name, component in status.components.items %}
+    {% if component.latency_ms %}
+    <div class="rounded-xl border p-5 mb-8" style="background:#242424;border-color:#2e2e2e">
+      <h2 class="text-sm font-semibold text-gray-300 mb-3">Response Time</h2>
+      <div class="flex items-end gap-2">
+        <span class="text-3xl font-bold text-white">{{ component.latency_ms }}</span>
+        <span class="text-sm text-gray-500 mb-1">ms</span>
+      </div>
+      <p class="text-xs text-gray-500 mt-1">Database round-trip latency</p>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t" style="border-color:#2e2e2e">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      {% load tz %}
+      <p class="text-xs text-gray-500">
+        Last checked {{ status.checked_at|date:"d/m/Y H:i" }} UTC
+      </p>
+      <a href="/status.json" class="text-xs hover:underline" style="color:#a3e635">
+        Developer API &rarr; /status.json
+      </a>
+    </div>
+  </footer>
+
+</body>
+</html>

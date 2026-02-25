@@ -216,9 +216,21 @@ class WorkspaceInvitation(models.Model):
     class Meta:
         verbose_name = 'Convite'
         verbose_name_plural = 'Convites'
+        unique_together = [['workspace', 'email']]
 
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            from datetime import timedelta
+
+            from django.utils import timezone
+
+            self.expires_at = timezone.now() + timedelta(days=7)
+        super().save(*args, **kwargs)
+
+    @property
     def is_expired(self):
         from django.utils import timezone
+
         return timezone.now() > self.expires_at
 
     def __str__(self):

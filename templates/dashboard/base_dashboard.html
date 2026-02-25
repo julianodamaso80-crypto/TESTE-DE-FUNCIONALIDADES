@@ -164,6 +164,17 @@
         <h1 class="text-base font-semibold text-white">{% block page_title %}Dashboard{% endblock %}</h1>
       </div>
       <div class="flex items-center gap-3">
+        <!-- Theme Selector -->
+        <div class="relative" id="themeMenu">
+          <button onclick="document.getElementById('themeDropdown').classList.toggle('hidden')" class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-surface-hover transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          </button>
+          <div id="themeDropdown" class="hidden absolute right-0 mt-2 w-40 rounded-xl border border-surface-border shadow-lg z-50" style="background:#242424">
+            <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-surface-hover rounded-t-xl">&#127761; Dark</button>
+            <button onclick="setTheme('darker')" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-surface-hover">&#11035; Darker</button>
+            <button onclick="setTheme('midnight')" class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-surface-hover rounded-b-xl">&#127748; Midnight</button>
+          </div>
+        </div>
         {% block header_actions %}{% endblock %}
       </div>
     </header>
@@ -204,5 +215,21 @@ setTimeout(() => {
 }, 4000);
 </script>
 
+<script>
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeDropdown').classList.add('hidden');
+  const fd = new FormData();
+  fd.append('ui_theme', theme);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch('{% url "accounts:update_preferences" %}', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}});
+}
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('themeMenu');
+  if (menu && !menu.contains(e.target)) {
+    document.getElementById('themeDropdown').classList.add('hidden');
+  }
+});
+</script>
 {% block extra_js %}{% endblock %}
 {% endblock %}

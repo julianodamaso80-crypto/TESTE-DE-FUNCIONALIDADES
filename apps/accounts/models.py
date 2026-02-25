@@ -17,6 +17,10 @@ class User(AbstractUser):
     # Onboarding
     onboarding_completed = models.BooleanField(default=False)
 
+    # UI Preferences
+    ui_theme = models.CharField(max_length=20, default='dark', choices=[('dark', 'Dark'), ('darker', 'Darker'), ('midnight', 'Midnight')])
+    ui_density = models.CharField(max_length=20, default='comfortable', choices=[('compact', 'Compact'), ('comfortable', 'Comfortable'), ('spacious', 'Spacious')])
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
