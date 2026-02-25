@@ -18,10 +18,22 @@ def _run_browser_tests(cases_data: list, base_url: str, run_id: str = None) -> l
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
-        context = browser.new_context(
-            viewport={'width': 1280, 'height': 720},
-            user_agent='SpriteTest/1.0 Playwright',
-        )
+
+        # Video recording setup
+        context_kwargs = {
+            'viewport': {'width': 1280, 'height': 720},
+            'user_agent': 'SpriteTest/1.0 Playwright',
+        }
+        video_dir = None
+        if run_id:
+            from django.conf import settings
+            from pathlib import Path
+            video_dir = Path(settings.MEDIA_ROOT) / 'videos' / str(run_id)
+            video_dir.mkdir(parents=True, exist_ok=True)
+            context_kwargs['record_video_dir'] = str(video_dir)
+            context_kwargs['record_video_size'] = {'width': 1280, 'height': 720}
+
+        context = browser.new_context(**context_kwargs)
         page = context.new_page()
 
         for case_data in cases_data:
@@ -82,6 +94,12 @@ def _run_browser_tests(cases_data: list, base_url: str, run_id: str = None) -> l
             results.append(result)
 
         browser.close()
+
+        # Capture video path after browser close
+        if video_dir and video_dir.exists():
+            video_files = list(video_dir.glob('*.webm'))
+            if video_files:
+                results.append({'_video_path': f"videos/{run_id}/{video_files[0].name}"})
 
     return results
 
@@ -150,6 +168,11 @@ def run_playwright_sync(test_run) -> None:
 
     # 3) Save results back to DB (outside Playwright context)
     for result in results:
+        # Handle video path marker
+        if '_video_path' in result:
+            test_run.video_path = result['_video_path']
+            test_run.save(update_fields=['video_path'])
+            continue
         case = cases_map[result['case_id']]
         case.status = 'passed' if result['status'] == 'passed' else 'failed'
         case.error_message = result.get('error', '')

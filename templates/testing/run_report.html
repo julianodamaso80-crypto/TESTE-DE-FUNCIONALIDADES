@@ -78,6 +78,14 @@
 </div>
 {% endif %}
 
+<!-- Video Recording -->
+{% if run.video_path %}
+<div class="card mb-6 no-print">
+  <p class="text-sm text-gray-400 mb-2">Gravação disponível:</p>
+  <a href="{{ MEDIA_URL }}{{ run.video_path }}" target="_blank" class="text-primary-400 hover:underline text-sm">▶ Assistir gravação completa</a>
+</div>
+{% endif %}
+
 <!-- Test Cases by Category -->
 {% for cat_name, cat_data in categories.items %}
 <div class="mb-6">

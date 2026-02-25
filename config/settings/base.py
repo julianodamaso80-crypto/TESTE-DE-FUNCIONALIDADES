@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.dashboard',
     'apps.testing',
     'apps.api',
+    'apps.billing',
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.analytics',
             ],
         },
     },
@@ -181,6 +183,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'testing.run_scheduled_tests',
         'schedule': crontab(minute='*/5'),
     },
+    'cleanup-videos': {
+        'task': 'testing.cleanup_videos',
+        'schedule': crontab(hour=3, minute=0),
+    },
 }
 
 # Logging estruturado
@@ -207,3 +213,13 @@ LOGGING = {
     },
     'root': {'handlers': ['console'], 'level': 'WARNING'},
 }
+
+# Stripe
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+STRIPE_PRO_PRICE_ID = os.environ.get('STRIPE_PRO_PRICE_ID', '')
+
+# PostHog Analytics
+POSTHOG_API_KEY = os.environ.get('POSTHOG_API_KEY', '')
+POSTHOG_HOST = os.environ.get('POSTHOG_HOST', 'https://app.posthog.com')

@@ -83,6 +83,12 @@ def run_scheduled_tests():
     return f"Processados {schedules.count()} agendamentos"
 
 
+@shared_task(name='testing.cleanup_videos')
+def cleanup_videos():
+    from django.core.management import call_command
+    call_command('cleanup_videos')
+
+
 @shared_task(name='testing.send_run_notification')
 def send_run_notification(run_id: str):
     """Envia email com resultado do run."""

@@ -75,6 +75,7 @@ class TestRun(models.Model):
     duration_secs = models.FloatField(null=True, blank=True)
     error_message = models.TextField(blank=True, default='')
     celery_task_id = models.CharField(max_length=255, blank=True, default='')
+    video_path = models.CharField(max_length=500, blank=True, default='')
     share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

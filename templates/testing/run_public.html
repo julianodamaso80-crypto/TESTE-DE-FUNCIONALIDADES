@@ -92,6 +92,16 @@
     </div>
     {% endif %}
 
+    <!-- Video Recording -->
+    {% if run.video_path %}
+    <div class="rounded-xl border p-6 mb-6" style="background:#242424;border-color:#2e2e2e">
+      <h2 class="font-semibold text-white mb-4">Gravação da Execução</h2>
+      <video controls class="w-full rounded-lg" style="max-height:400px">
+        <source src="/media/{{ run.video_path }}" type="video/webm">
+      </video>
+    </div>
+    {% endif %}
+
     <!-- Test Cases by Category -->
     {% for cat_name, cat_data in categories.items %}
     <div class="mb-6">
