@@ -88,6 +88,14 @@
         Monitoring
       </a>
 
+      <a href="{% url 'api:keys_list' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'keys_list' %}active{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+        </svg>
+        API Keys
+      </a>
+
       <div class="pt-2 mt-2 border-t border-surface-border">
         <p class="section-title">Workspace</p>
 

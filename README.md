@@ -1,47 +1,33 @@
-# SpriteTest
+# SpriteTest — AI Testing Platform
 
-AI-Powered Testing Platform — autonomous test generation, execution, and reporting.
+SaaS de testes automatizados com IA. Similar ao TestSprite.com, com diferenciais:
+- Execução local (mock) + execução real (Playwright)
+- Relatórios compartilháveis por link público
+- API REST para integração CI/CD
+- Self-hostable via Docker
 
-## Quick Start
+## Stack
+- Backend: Django 5.0.6 + Celery + Redis
+- Frontend: Tailwind CSS v3 (dark theme navy/yellow)
+- AI: Claude API (Anthropic)
+- Testing: Playwright (Chromium)
+- Deploy: Railway + GitHub Actions
+
+## Desenvolvimento local
 
 ```bash
-# 1. Create and activate virtual environment
-python -m venv .venv
-source .venv/Scripts/activate  # Windows
-# source .venv/bin/activate    # Linux/Mac
-
-# 2. Install dependencies
-pip install -r requirements-dev.txt
-
-# 3. Copy environment file
-cp .env.example .env
-
-# 4. Install Node dependencies and build CSS
-npm install
-npm run build:css
-
-# 5. Run migrations
+cd spritetest
+source .venv/bin/activate  # ou .venv\Scripts\activate no Windows
+cp .env.example .env       # preencher ANTHROPIC_API_KEY
 python manage.py migrate
-
-# 6. Start development server
-python manage.py runserver
+npm run build:css
+python manage.py runserver 8000
 ```
 
-## Development
+## Variáveis de ambiente
+Ver .env.example para lista completa.
 
-- **Watch CSS changes:** `npm run watch:css`
-- **Build for production:** `npm run build:css:prod`
-- **Django settings:** `config/settings/development.py`
-
-## Project Structure
-
-```
-spritetest/
-├── config/          # Django settings (base, development, production)
-├── apps/
-│   ├── core/        # Landing page, health check
-│   └── accounts/    # Auth (future)
-├── templates/       # Global templates
-├── static/          # Static assets (Tailwind source + compiled CSS)
-└── manage.py
-```
+## Deploy Railway
+1. Conectar repositório GitHub no Railway
+2. Adicionar PostgreSQL e Redis via Railway dashboard
+3. Configurar variáveis: DJANGO_SECRET_KEY, DJANGO_SETTINGS_MODULE, ALLOWED_HOSTS, ANTHROPIC_API_KEY

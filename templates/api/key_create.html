@@ -1,0 +1,38 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Nova API Key{% endblock %}
+
+{% block content %}
+
+<div class="max-w-md mx-auto">
+  <div class="card">
+    <h2 class="text-lg font-semibold text-white mb-5">Criar API Key</h2>
+
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-300 mb-1.5">Nome da Key</label>
+        <input type="text" name="name" id="name" required
+               placeholder="ex: CI/CD Pipeline, Staging Tests"
+               class="input-field bg-surface-input w-full">
+      </div>
+
+      <button type="submit" class="btn-primary w-full justify-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+        </svg>
+        Gerar API Key
+      </button>
+    </form>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{% url 'api:keys_list' %}" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+      &larr; Voltar para API Keys
+    </a>
+  </div>
+</div>
+
+{% endblock %}

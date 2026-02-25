@@ -1,0 +1,123 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}API Keys{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'api:key_create' %}" class="btn-primary text-sm">
+  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+  </svg>
+  Nova API Key
+</a>
+{% endblock %}
+
+{% block content %}
+
+{% if keys %}
+<div class="card overflow-hidden p-0 mb-6">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-surface-border text-left text-xs text-gray-500 uppercase tracking-wider">
+        <th class="px-5 py-3 font-medium">Nome</th>
+        <th class="px-5 py-3 font-medium">Prefixo</th>
+        <th class="px-5 py-3 font-medium">Status</th>
+        <th class="px-5 py-3 font-medium">Criada em</th>
+        <th class="px-5 py-3 font-medium">Último uso</th>
+        <th class="px-5 py-3 font-medium text-right">Ação</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-surface-border">
+      {% for key in keys %}
+      <tr class="hover:bg-surface-hover transition-colors">
+        <td class="px-5 py-3">
+          <span class="font-medium text-white">{{ key.name }}</span>
+        </td>
+        <td class="px-5 py-3">
+          <code class="text-xs bg-surface px-2 py-1 rounded text-gray-300">{{ key.key_prefix }}...</code>
+        </td>
+        <td class="px-5 py-3">
+          {% if key.is_active %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Ativa
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+              Revogada
+            </span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-gray-400 text-xs">
+          {{ key.created_at|date:"d/m/Y H:i" }}
+        </td>
+        <td class="px-5 py-3 text-gray-400 text-xs">
+          {% if key.last_used_at %}
+            {{ key.last_used_at|date:"d/m/Y H:i" }}
+          {% else %}
+            <span class="text-gray-600">Nunca</span>
+          {% endif %}
+        </td>
+        <td class="px-5 py-3 text-right">
+          {% if key.is_active %}
+          <form method="post" action="{% url 'api:key_revoke' key.id %}" class="inline">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-900/30 text-red-300 hover:bg-red-900/50 transition-colors"
+                    onclick="return confirm('Revogar esta API Key? Esta ação não pode ser desfeita.')">
+              Revogar
+            </button>
+          </form>
+          {% else %}
+            <span class="text-xs text-gray-600">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Quick Docs -->
+<div class="card">
+  <h3 class="text-sm font-semibold text-white mb-3">Uso rápido da API</h3>
+  <div class="bg-dark-900 rounded-lg p-4 overflow-x-auto">
+    <pre class="text-xs text-gray-300 leading-relaxed"><code>curl -X POST https://seuapp.railway.app/api/v1/tests/ \
+  -H "Authorization: Bearer spt_suachave" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","name":"Meu Teste","test_type":"ui"}'</code></pre>
+  </div>
+  <div class="mt-3 space-y-1.5 text-xs text-gray-500">
+    <p><code class="text-gray-400">GET /api/v1/projects/</code> — Lista projetos</p>
+    <p><code class="text-gray-400">POST /api/v1/tests/</code> — Cria teste + executa</p>
+    <p><code class="text-gray-400">GET /api/v1/runs/&lt;id&gt;/</code> — Detalhes do run</p>
+    <p><code class="text-gray-400">GET /api/v1/runs/&lt;id&gt;/status/</code> — Status rápido</p>
+  </div>
+</div>
+
+{% else %}
+
+<!-- Empty State -->
+<div class="card text-center py-16">
+  <div class="w-16 h-16 rounded-2xl bg-primary-900/30 border border-primary-800/50
+              flex items-center justify-center mx-auto mb-6">
+    <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+    </svg>
+  </div>
+  <h2 class="text-xl font-bold text-white mb-3">Nenhuma API Key criada</h2>
+  <p class="text-gray-400 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+    Crie uma API Key para integrar o SpriteTest com seus pipelines CI/CD e automações.
+  </p>
+  <a href="{% url 'api:key_create' %}" class="btn-primary mx-auto inline-flex">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    Criar API Key
+  </a>
+</div>
+
+{% endif %}
+
+{% endblock %}

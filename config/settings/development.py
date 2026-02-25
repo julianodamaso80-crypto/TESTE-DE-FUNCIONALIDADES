@@ -25,8 +25,11 @@ STORAGES = {
 }
 
 # Django Debug Toolbar
-INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
-MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')  # noqa: F405
+import sys
+_TESTING = 'test' in sys.argv
+if not _TESTING:
+    INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')  # noqa: F405
 INTERNAL_IPS = ['127.0.0.1']
 
 # Email - Console backend for development

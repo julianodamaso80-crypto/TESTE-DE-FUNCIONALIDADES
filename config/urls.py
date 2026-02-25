@@ -11,6 +11,7 @@ urlpatterns = [
     path('workspace/', include('apps.workspaces.urls', namespace='workspaces')),
     path('accounts/', include('apps.accounts.urls', namespace='accounts')),
     path('testing/', include('apps.testing.urls', namespace='testing')),
+    path('api/', include('apps.api.urls', namespace='api')),
 ]
 
 handler404 = 'apps.core.views.error_404'
