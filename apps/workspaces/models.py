@@ -113,6 +113,15 @@ class Workspace(models.Model):
         """Retorna limites do plano atual."""
         return PLAN_LIMITS.get(self.plan, PLAN_LIMITS[Plan.FREE])
 
+    def get_plan_limits(self):
+        """Retorna limites simplificados para exibição."""
+        limits = {
+            'free':       {'runs': 50,   'members': 3,  'projects': 2},
+            'pro':        {'runs': 1000, 'members': 20, 'projects': 999},
+            'enterprise': {'runs': 9999, 'members': 9999, 'projects': 9999},
+        }
+        return limits.get(self.plan, limits['free'])
+
     def save(self, *args, **kwargs):
         """Auto-gerar slug a partir do name e aplicar limites do plano."""
         if not self.slug:

@@ -1,51 +1,217 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
-{% block page_title %}Workspace Settings{% endblock %}
+{% block page_title %}Configurações do Workspace{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl">
+<div class="max-w-3xl space-y-6">
 
-  <div class="card mb-6">
-    <h2 class="text-lg font-semibold text-white mb-4">General</h2>
-    <div class="space-y-4">
-      <div>
-        <label class="block text-xs font-medium text-gray-400 mb-1">Workspace Name</label>
-        <p class="text-sm text-gray-200">{{ request.workspace.name }}</p>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-400 mb-1">Slug</label>
-        <p class="text-sm text-gray-200 font-mono">{{ request.workspace.slug }}</p>
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-gray-400 mb-1">Plan</label>
-        <p class="text-sm text-gray-200 capitalize">{{ request.workspace.plan }}</p>
-      </div>
-    </div>
-  </div>
-
+  <!-- Card: Geral -->
   <div class="card">
-    <h2 class="text-lg font-semibold text-white mb-4">Plan Limits</h2>
-    <div class="grid grid-cols-2 gap-4 text-sm">
+    <h2 class="text-lg font-semibold text-white mb-4">Geral</h2>
+    <div class="space-y-4">
+      {% if is_owner %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_name">
+        <div>
+          <label for="ws-name" class="block text-xs font-medium text-gray-400 mb-1">Nome do Workspace</label>
+          <div class="flex gap-2">
+            <input type="text" name="name" id="ws-name" value="{{ workspace.name }}"
+                   class="input-field flex-1" required>
+            <button type="submit" class="btn-primary text-sm">Salvar</button>
+          </div>
+        </div>
+      </form>
+      {% else %}
       <div>
-        <span class="text-gray-400">Test runs / month</span>
-        <p class="text-white font-medium">
-          {% if request.workspace.max_test_runs_per_month == -1 %}Unlimited{% else %}{{ request.workspace.max_test_runs_per_month }}{% endif %}
-        </p>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Nome do Workspace</label>
+        <p class="text-sm text-gray-200">{{ workspace.name }}</p>
       </div>
-      <div>
-        <span class="text-gray-400">Max members</span>
-        <p class="text-white font-medium">
-          {% if request.workspace.max_members == -1 %}Unlimited{% else %}{{ request.workspace.max_members }}{% endif %}
-        </p>
-      </div>
-      <div>
-        <span class="text-gray-400">Max projects</span>
-        <p class="text-white font-medium">
-          {% if request.workspace.max_projects == -1 %}Unlimited{% else %}{{ request.workspace.max_projects }}{% endif %}
-        </p>
+      {% endif %}
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Slug</label>
+          <p class="text-sm text-gray-300 font-mono bg-dark-900 px-3 py-1.5 rounded border border-surface-border">{{ workspace.slug }}</p>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Plano</label>
+          <div class="flex items-center gap-2">
+            {% if workspace.plan == 'free' %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-800 text-gray-300">FREE</span>
+            {% elif workspace.plan == 'pro' %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-primary-400/20 text-primary-400">PRO</span>
+            {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-400/20 text-purple-400">ENTERPRISE</span>
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Card: Uso do Plano -->
+  <div class="card">
+    <h2 class="text-lg font-semibold text-white mb-4">Uso do Plano</h2>
+    <div class="space-y-5">
+      {% with runs_used=workspace.projects.count members_used=members.count projects_used=workspace.projects.count %}
+
+      <!-- Runs -->
+      <div>
+        <div class="flex justify-between text-xs mb-1.5">
+          <span class="text-gray-400">Test Runs / mês</span>
+          <span class="text-gray-300">{{ runs_used }} / {% if plan_limits.runs >= 9999 %}Ilimitado{% else %}{{ plan_limits.runs }}{% endif %}</span>
+        </div>
+        {% if plan_limits.runs < 9999 %}
+        {% widthratio runs_used plan_limits.runs 100 as runs_pct %}
+        <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all {% if runs_pct > 95 %}bg-red-500{% elif runs_pct > 80 %}bg-amber-500{% else %}bg-primary-400{% endif %}"
+               style="width: {{ runs_pct }}%"></div>
+        </div>
+        {% else %}
+        <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+          <div class="h-full rounded-full bg-primary-400/30" style="width: 5%"></div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Members -->
+      <div>
+        <div class="flex justify-between text-xs mb-1.5">
+          <span class="text-gray-400">Membros</span>
+          <span class="text-gray-300">{{ members_used }} / {% if plan_limits.members >= 9999 %}Ilimitado{% else %}{{ plan_limits.members }}{% endif %}</span>
+        </div>
+        {% if plan_limits.members < 9999 %}
+        {% widthratio members_used plan_limits.members 100 as members_pct %}
+        <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all {% if members_pct > 95 %}bg-red-500{% elif members_pct > 80 %}bg-amber-500{% else %}bg-primary-400{% endif %}"
+               style="width: {{ members_pct }}%"></div>
+        </div>
+        {% else %}
+        <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+          <div class="h-full rounded-full bg-primary-400/30" style="width: 5%"></div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Projects -->
+      <div>
+        <div class="flex justify-between text-xs mb-1.5">
+          <span class="text-gray-400">Projetos</span>
+          <span class="text-gray-300">{{ projects_used }} / {% if plan_limits.projects >= 999 %}Ilimitado{% else %}{{ plan_limits.projects }}{% endif %}</span>
+        </div>
+        {% if plan_limits.projects < 999 %}
+        {% widthratio projects_used plan_limits.projects 100 as projects_pct %}
+        <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all {% if projects_pct > 95 %}bg-red-500{% elif projects_pct > 80 %}bg-amber-500{% else %}bg-primary-400{% endif %}"
+               style="width: {{ projects_pct }}%"></div>
+        </div>
+        {% else %}
+        <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+          <div class="h-full rounded-full bg-primary-400/30" style="width: 5%"></div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% endwith %}
+    </div>
+  </div>
+
+  <!-- Card: Membros -->
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Membros</h2>
+      <span class="text-xs text-gray-500">{{ members.count }} membro{{ members.count|pluralize:"s" }}</span>
+    </div>
+
+    <div class="space-y-2">
+      {% for m in members %}
+      <div class="flex items-center justify-between py-3 {% if not forloop.last %}border-b border-surface-border{% endif %}">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-400 to-primary-600
+                      flex items-center justify-center text-dark-900 text-xs font-bold shrink-0">
+            {{ m.user.initials }}
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-200">{{ m.user.display_name }}</p>
+            <p class="text-xs text-gray-500">{{ m.user.email }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          {% if m.role == 'owner' %}
+            <span class="text-xs font-semibold text-primary-400 bg-primary-400/10 px-2 py-0.5 rounded">Owner</span>
+          {% elif m.role == 'admin' %}
+            <span class="text-xs font-medium text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">Admin</span>
+          {% else %}
+            <span class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded capitalize">{{ m.role }}</span>
+          {% endif %}
+
+          <span class="text-xs text-gray-600">{{ m.invited_at|date:"d/m/Y" }}</span>
+
+          {% if is_owner and m.role != 'owner' %}
+          <form method="post" class="inline" onsubmit="return confirm('Remover {{ m.user.display_name }} do workspace?')">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="remove_member">
+            <input type="hidden" name="member_id" value="{{ m.id }}">
+            <button type="submit" class="text-xs text-red-400 hover:text-red-300 transition-colors">
+              Remover
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if members.count < plan_limits.members or plan_limits.members >= 9999 %}
+    <div class="mt-4 pt-4 border-t border-surface-border">
+      <a href="{% url 'workspaces:members' %}"
+         class="inline-flex items-center gap-2 text-sm text-primary-400 hover:text-primary-300 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+        </svg>
+        Convidar novo membro
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Card: Upgrade -->
+  {% if workspace.plan == 'free' %}
+  <div class="card border-primary-400/20">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-primary-400/10 flex items-center justify-center shrink-0">
+        <svg class="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-sm font-semibold text-white">Upgrade para Pro</h3>
+        <p class="text-xs text-gray-400 mt-0.5">1000 runs/mês, 20 membros, projetos ilimitados, API access e scheduling.</p>
+      </div>
+      <a href="{% url 'billing:pricing' %}" class="btn-primary text-sm shrink-0">Ver planos</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Card: Danger Zone -->
+  {% if not is_owner %}
+  <div class="rounded-xl border border-red-900/40 bg-red-950/10 p-6">
+    <h2 class="text-lg font-semibold text-red-400 mb-2">Danger Zone</h2>
+    <p class="text-sm text-gray-400 mb-4">Ao sair do workspace, você perderá acesso a todos os projetos e test runs.</p>
+    <form method="post" onsubmit="return confirm('Tem certeza que deseja sair deste workspace? Esta ação não pode ser desfeita.')">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="leave_workspace">
+      <button type="submit"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-400 border border-red-900/40 rounded-lg hover:bg-red-950/30 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Sair do Workspace
+      </button>
+    </form>
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}

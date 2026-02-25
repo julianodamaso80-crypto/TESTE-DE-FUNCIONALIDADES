@@ -76,17 +76,34 @@
     </div>
     {% endif %}
 
+    <!-- Last run status -->
+    {% with last_run=item.project.runs.first %}
+    {% if last_run %}
+    <div class="flex items-center gap-2 mb-3 text-xs text-gray-500">
+      <span>Ultimo run:</span>
+      {% if last_run.status == 'passed' %}
+        <span class="px-1.5 py-0.5 rounded bg-emerald-900/40 text-emerald-300 font-medium">Passed</span>
+      {% elif last_run.status == 'failed' %}
+        <span class="px-1.5 py-0.5 rounded bg-red-900/40 text-red-300 font-medium">Failed</span>
+      {% elif last_run.status == 'running' %}
+        <span class="px-1.5 py-0.5 rounded bg-blue-900/40 text-blue-300 font-medium">Running</span>
+      {% else %}
+        <span class="px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 font-medium">{{ last_run.status|title }}</span>
+      {% endif %}
+      <span class="text-gray-600">{{ last_run.created_at|timesince }} ago</span>
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <div class="flex items-center gap-2">
+      <a href="{% url 'testing:project_detail' project_id=item.project.id %}"
+         class="flex-1 text-center px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm text-gray-300 transition-colors">
+        Ver detalhes
+      </a>
       <a href="{% url 'testing:new_test' %}"
          class="flex-1 text-center px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm text-gray-300 transition-colors">
         New Run
       </a>
-      {% if item.total_runs > 0 %}
-      <a href="{% url 'testing:project_list' %}"
-         class="flex-1 text-center px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm text-gray-300 transition-colors">
-        View Runs
-      </a>
-      {% endif %}
     </div>
   </div>
   {% endfor %}

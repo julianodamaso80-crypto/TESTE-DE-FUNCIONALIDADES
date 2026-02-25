@@ -12,8 +12,41 @@ def members(request):
 
 
 @login_required
-def settings(request):
-    return render(request, 'workspaces/settings.html', {})
+def workspace_settings(request):
+    workspace = request.workspace
+    membership = workspace.memberships.filter(user=request.user).first()
+    is_owner = membership and membership.role == 'owner'
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'update_name' and is_owner:
+            name = request.POST.get('name', '').strip()
+            if name:
+                workspace.name = name
+                workspace.save(update_fields=['name'])
+                messages.success(request, 'Nome atualizado!')
+        elif action == 'remove_member' and is_owner:
+            member_id = request.POST.get('member_id')
+            from apps.workspaces.models import WorkspaceMembership
+            m = WorkspaceMembership.objects.filter(
+                id=member_id, workspace=workspace
+            ).exclude(user=request.user).first()
+            if m:
+                m.delete()
+                messages.success(request, 'Membro removido.')
+        elif action == 'leave_workspace' and not is_owner:
+            workspace.memberships.filter(user=request.user).delete()
+            messages.success(request, 'Você saiu do workspace.')
+            return redirect('dashboard:home')
+        return redirect('workspaces:settings')
+
+    members_list = workspace.memberships.select_related('user').all()
+    return render(request, 'workspaces/settings.html', {
+        'workspace': workspace,
+        'members': members_list,
+        'is_owner': is_owner,
+        'plan_limits': workspace.get_plan_limits(),
+    })
 
 
 @login_required

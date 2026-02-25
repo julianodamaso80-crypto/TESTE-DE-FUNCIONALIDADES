@@ -6,6 +6,6 @@ app_name = 'workspaces'
 
 urlpatterns = [
     path('members/', views.members, name='members'),
-    path('settings/', views.settings, name='settings'),
+    path('settings/', views.workspace_settings, name='settings'),
     path('integrations/', views.integrations, name='integrations'),
 ]

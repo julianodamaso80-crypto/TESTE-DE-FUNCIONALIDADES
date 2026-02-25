@@ -1,0 +1,315 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}{{ project.name }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'testing:new_test' %}" class="btn-primary text-sm">
+  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+  </svg>
+  Novo Run
+</a>
+<form method="post" action="{% url 'testing:project_delete' project_id=project.id %}"
+      onsubmit="return confirm('Remover projeto &quot;{{ project.name }}&quot; e todos os runs?')"
+      style="display:inline">
+  {% csrf_token %}
+  <button type="submit" class="btn-ghost text-sm text-red-400 hover:text-red-300">
+    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+    </svg>
+    Deletar
+  </button>
+</form>
+{% endblock %}
+
+{% block content %}
+
+<!-- Project Header -->
+<div class="card mb-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <h2 class="text-lg font-bold text-white">{{ project.name }}</h2>
+        <span class="px-2 py-0.5 rounded text-xs font-medium uppercase
+                     {% if project.test_type == 'ui' %}bg-purple-900/40 text-purple-300
+                     {% elif project.test_type == 'api' %}bg-cyan-900/40 text-cyan-300
+                     {% else %}bg-indigo-900/40 text-indigo-300{% endif %}">
+          {{ project.test_type }}
+        </span>
+      </div>
+      <a href="{{ project.base_url }}" target="_blank" class="text-sm text-gray-400 hover:text-primary-400 transition-colors">
+        {{ project.base_url }} &nearr;
+      </a>
+      <p class="text-xs text-gray-600 mt-1">Criado em {{ project.created_at|date:"d/m/Y" }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm text-gray-400">Total Runs</span>
+      <div class="w-7 h-7 rounded-lg bg-primary-900/40 flex items-center justify-center">
+        <svg class="w-3.5 h-3.5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+        </svg>
+      </div>
+    </div>
+    <p class="text-2xl font-bold text-white">{{ stats.total_runs }}</p>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm text-gray-400">Avg Pass Rate</span>
+      <div class="w-7 h-7 rounded-lg bg-emerald-900/40 flex items-center justify-center">
+        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+    </div>
+    <p class="text-2xl font-bold {% if stats.avg_pass_rate >= 80 %}text-emerald-400{% elif stats.avg_pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+      {{ stats.avg_pass_rate }}%
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm text-gray-400">Ultimo Run</span>
+      <div class="w-7 h-7 rounded-lg bg-blue-900/40 flex items-center justify-center">
+        <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+    </div>
+    {% if stats.last_run %}
+    <p class="text-lg font-bold text-white">{{ stats.last_run.created_at|timesince }}</p>
+    <p class="text-xs text-gray-500">ago</p>
+    {% else %}
+    <p class="text-lg font-bold text-gray-600">&mdash;</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm text-gray-400">Melhor Run</span>
+      <div class="w-7 h-7 rounded-lg bg-amber-900/40 flex items-center justify-center">
+        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+        </svg>
+      </div>
+    </div>
+    {% if stats.best_run %}
+    <p class="text-2xl font-bold text-emerald-400">{{ stats.best_run.pass_rate }}%</p>
+    {% else %}
+    <p class="text-2xl font-bold text-gray-600">&mdash;</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Chart + Schedules Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+  <!-- Pass Rate History Chart -->
+  <div class="card lg:col-span-2">
+    <h3 class="text-base font-semibold text-white mb-4">Historico de Pass Rate</h3>
+    <div style="position:relative;height:240px">
+      <canvas id="passRateChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Schedules -->
+  <div class="card">
+    <h3 class="text-base font-semibold text-white mb-4">Agendamentos</h3>
+    {% if schedules %}
+    <div class="space-y-3">
+      {% for schedule in schedules %}
+      <div class="p-3 rounded-lg bg-surface border border-surface-border">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium {% if schedule.is_active %}text-emerald-400{% else %}text-gray-500{% endif %}">
+            {{ schedule.get_frequency_display }}
+          </span>
+          <form method="post" action="{% url 'testing:schedule_toggle' schedule_id=schedule.id %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit" class="text-xs px-2 py-1 rounded
+                    {% if schedule.is_active %}bg-emerald-900/40 text-emerald-300 hover:bg-emerald-900/60
+                    {% else %}bg-gray-800 text-gray-400 hover:bg-gray-700{% endif %} transition-colors">
+              {% if schedule.is_active %}Ativo{% else %}Pausado{% endif %}
+            </button>
+          </form>
+        </div>
+        {% if schedule.next_run_at and schedule.is_active %}
+        <p class="text-xs text-gray-500">
+          Proximo: {{ schedule.next_run_at|date:"d/m/Y H:i" }}
+        </p>
+        {% endif %}
+        {% if schedule.notify_email %}
+        <p class="text-xs text-gray-600 mt-1">
+          Notificacao por email {% if schedule.notify_on_failure_only %}(somente falhas){% endif %}
+        </p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-6">
+      <p class="text-sm text-gray-500 mb-3">Nenhum agendamento configurado</p>
+      <a href="{% url 'testing:schedule_create' project_id=project.id %}"
+         class="btn-ghost text-sm text-primary-400">
+        Configurar agendamento
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Run History Table -->
+{% if runs %}
+<div class="card">
+  <h3 class="text-base font-semibold text-white mb-4">Historico de Execucoes</h3>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-surface-border text-gray-500 text-xs uppercase">
+          <th class="text-left py-2 px-3 font-medium">Status</th>
+          <th class="text-left py-2 px-3 font-medium">Pass Rate</th>
+          <th class="text-left py-2 px-3 font-medium">Cases</th>
+          <th class="text-left py-2 px-3 font-medium">Duracao</th>
+          <th class="text-left py-2 px-3 font-medium">Data</th>
+          <th class="text-right py-2 px-3 font-medium"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+        <tr class="border-b border-surface-border/50 hover:bg-surface-hover/30 transition-colors">
+          <td class="py-3 px-3">
+            {% if run.status == 'passed' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/40 text-emerald-300">Passed</span>
+            {% elif run.status == 'failed' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-red-900/40 text-red-300">Failed</span>
+            {% elif run.status == 'running' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-blue-900/40 text-blue-300">Running</span>
+            {% elif run.status == 'pending' %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-900/40 text-amber-300">Pending</span>
+            {% else %}
+              <span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-800 text-gray-400">{{ run.status|title }}</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-3">
+            {% if run.status in 'passed,failed' %}
+            <span class="font-semibold {% if run.pass_rate >= 80 %}text-emerald-400{% elif run.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %}">
+              {{ run.pass_rate }}%
+            </span>
+            {% else %}
+            <span class="text-gray-600">&mdash;</span>
+            {% endif %}
+          </td>
+          <td class="py-3 px-3 text-gray-400">
+            {{ run.total_cases }} <span class="text-gray-600">({{ run.passed_cases }}P / {{ run.failed_cases }}F)</span>
+          </td>
+          <td class="py-3 px-3 text-gray-400">
+            {% if run.duration_secs %}{{ run.duration_secs|floatformat:1 }}s{% else %}&mdash;{% endif %}
+          </td>
+          <td class="py-3 px-3 text-gray-500">
+            {{ run.created_at|date:"d/m/Y H:i" }}
+          </td>
+          <td class="py-3 px-3 text-right">
+            <a href="{% url 'testing:run_detail' run_id=run.id %}"
+               class="text-primary-400 hover:text-primary-300 text-xs hover:underline">
+              Ver &rarr;
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+
+<!-- Empty State -->
+<div class="card text-center py-16">
+  <div class="w-16 h-16 rounded-2xl bg-primary-900/30 border border-primary-800/50
+              flex items-center justify-center mx-auto mb-6">
+    <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+    </svg>
+  </div>
+  <h2 class="text-xl font-bold text-white mb-3">Nenhuma execucao ainda</h2>
+  <p class="text-gray-400 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
+    Execute o primeiro teste para este projeto.
+  </p>
+  <a href="{% url 'testing:new_test' %}" class="btn-primary mx-auto inline-flex">
+    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+    </svg>
+    Executar primeiro teste
+  </a>
+</div>
+{% endif %}
+
+<!-- Back link -->
+<div class="mt-6">
+  <a href="{% url 'testing:project_list' %}" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+    &larr; Voltar para Projetos
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const historyData = {{ pass_rate_history_json|safe }};
+
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.borderColor = '#2e2e2e';
+
+if (historyData.length > 0) {
+  new Chart(document.getElementById('passRateChart'), {
+    type: 'line',
+    data: {
+      labels: historyData.map(d => d.date),
+      datasets: [{
+        label: 'Pass Rate %',
+        data: historyData.map(d => d.pass_rate),
+        borderColor: '#a3e635',
+        backgroundColor: 'rgba(163,230,53,0.1)',
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: function(ctx) {
+          const val = ctx.parsed.y;
+          if (val >= 80) return '#a3e635';
+          if (val >= 50) return '#fbbf24';
+          return '#f87171';
+        },
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', usePointStyle: true, pointStyle: 'circle' } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return 'Pass Rate: ' + ctx.parsed.y + '%'; }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#6b7280' }, grid: { color: '#2e2e2e' } },
+        y: { min: 0, max: 100, ticks: { color: '#6b7280', callback: v => v + '%' }, grid: { color: '#2e2e2e' } }
+      }
+    }
+  });
+} else {
+  document.getElementById('passRateChart').parentElement.innerHTML =
+    '<p class="text-sm text-gray-500 text-center py-12">Sem dados para exibir</p>';
+}
+</script>
+{% endblock %}

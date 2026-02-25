@@ -216,6 +216,42 @@ def toggle_share(request, run_id):
 
 
 @login_required
+def project_detail(request, project_id):
+    import json
+    project = get_object_or_404(TestProject, id=project_id, workspace=request.workspace)
+    runs = TestRun.objects.filter(project=project).order_by('-created_at')[:20]
+    runs_list = list(runs)
+    pass_rate_history = [
+        {'date': r.created_at.strftime('%d/%m'), 'pass_rate': r.pass_rate}
+        for r in reversed(runs_list)
+    ]
+    stats = {
+        'total_runs': runs.count(),
+        'avg_pass_rate': round(sum(r.pass_rate for r in runs_list) / len(runs_list)) if runs_list else 0,
+        'last_run': runs.first(),
+        'best_run': max(runs_list, key=lambda r: r.pass_rate) if runs_list else None,
+    }
+    schedules = ScheduledTest.objects.filter(project=project)
+    return render(request, 'testing/project_detail.html', {
+        'project': project,
+        'runs': runs,
+        'stats': stats,
+        'schedules': schedules,
+        'pass_rate_history_json': json.dumps(pass_rate_history),
+    })
+
+
+@login_required
+@require_POST
+def project_delete(request, project_id):
+    project = get_object_or_404(TestProject, id=project_id, workspace=request.workspace)
+    project_name = project.name
+    project.delete()
+    messages.success(request, f'Projeto "{project_name}" removido.')
+    return redirect('testing:project_list')
+
+
+@login_required
 def schedule_list(request):
     schedules = ScheduledTest.objects.filter(
         project__workspace=request.workspace
