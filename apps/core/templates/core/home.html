@@ -3,6 +3,11 @@
 
 {% block title %}AI-Powered Testing Platform{% endblock %}
 
+{% block seo %}
+{% load seo_tags %}
+{% seo_meta title="SpriteTest — AI Testing Platform" description="Generate and execute automated tests with AI. No code required. Powered by Claude AI and Playwright." %}
+{% endblock %}
+
 {% block content %}
 
 <!-- Hero -->
@@ -165,5 +170,22 @@
     <p class="text-gray-600 text-sm mt-4">Sem cartão · 2 minutos · Cancele quando quiser</p>
   </div>
 </section>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "SpriteTest",
+  "description": "AI-powered testing platform for web applications",
+  "applicationCategory": "DeveloperApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "operatingSystem": "Web"
+}
+</script>
 
 {% endblock %}

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /testing/
+Disallow: /api/
+Disallow: /billing/
+Disallow: /admin/
+Sitemap: https://spritetest.io/sitemap.xml
