@@ -3,6 +3,7 @@ Django development settings for SpriteTest.
 """
 
 from .base import *  # noqa: F401, F403
+import sys
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -24,10 +25,8 @@ STORAGES = {
     },
 }
 
-# Django Debug Toolbar
-import sys
-_TESTING = 'test' in sys.argv
-if not _TESTING:
+# Django Debug Toolbar (disabled during tests)
+if 'test' not in sys.argv:
     INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
     MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')  # noqa: F405
 INTERNAL_IPS = ['127.0.0.1']
