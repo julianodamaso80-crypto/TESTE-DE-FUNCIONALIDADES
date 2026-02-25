@@ -43,6 +43,53 @@
     </form>
   </div>
 
+  <!-- Aparencia -->
+  <div class="card mb-6">
+    <h2 class="font-semibold text-white mb-5 flex items-center gap-2">
+      <svg class="w-5 h-5 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+      Aparência
+    </h2>
+    <form method="post" action="{% url 'accounts:update_preferences' %}">
+      {% csrf_token %}
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">Tema</p>
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <label class="cursor-pointer">
+          <input type="radio" name="ui_theme" value="dark" {% if ui_theme == 'dark' %}checked{% endif %} class="sr-only peer">
+          <div class="rounded-xl p-4 border border-surface-border peer-checked:border-primary-400 transition-all" style="background:#1a1a1a">
+            <div class="w-full h-8 rounded-lg mb-2" style="background:#242424;border:1px solid #2e2e2e"></div>
+            <p class="text-xs text-gray-300 font-medium">Dark</p>
+          </div>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="ui_theme" value="darker" {% if ui_theme == 'darker' %}checked{% endif %} class="sr-only peer">
+          <div class="rounded-xl p-4 border border-surface-border peer-checked:border-primary-400 transition-all" style="background:#111111">
+            <div class="w-full h-8 rounded-lg mb-2" style="background:#1a1a1a;border:1px solid #252525"></div>
+            <p class="text-xs text-gray-300 font-medium">Darker</p>
+          </div>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="ui_theme" value="midnight" {% if ui_theme == 'midnight' %}checked{% endif %} class="sr-only peer">
+          <div class="rounded-xl p-4 border border-surface-border peer-checked:border-primary-400 transition-all" style="background:#090e1a">
+            <div class="w-full h-8 rounded-lg mb-2" style="background:#0f172a;border:1px solid #1e293b"></div>
+            <p class="text-xs text-gray-300 font-medium">Midnight</p>
+          </div>
+        </label>
+      </div>
+      <p class="text-xs text-gray-500 uppercase tracking-widest mb-3">Densidade</p>
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        {% for val, label in density_choices %}
+        <label class="cursor-pointer">
+          <input type="radio" name="ui_density" value="{{ val }}" {% if ui_density == val %}checked{% endif %} class="sr-only peer">
+          <div class="rounded-xl p-4 border border-surface-border peer-checked:border-primary-400 text-center transition-all" style="background:#242424">
+            <p class="text-xs text-gray-300 font-medium">{{ label }}</p>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn-primary w-full justify-center">Salvar Aparência</button>
+    </form>
+  </div>
+
   <!-- Seguranca -->
   <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
     <h2 class="text-lg font-semibold text-white mb-6">Segurança</h2>
@@ -72,52 +119,6 @@
       <div class="flex justify-end">
         <button type="submit" class="px-5 py-2.5 rounded-lg border border-surface-border text-gray-300 text-sm font-medium hover:bg-surface-hover transition-colors">Alterar Senha</button>
       </div>
-    </form>
-  </div>
-
-  <!-- Aparencia -->
-  <div class="rounded-xl border border-surface-border p-6" style="background:#1e1e1e">
-    <h2 class="text-lg font-semibold text-white mb-6">Aparência</h2>
-
-    <form method="POST" action="{% url 'accounts:update_preferences' %}" id="preferencesForm">
-      {% csrf_token %}
-
-      <!-- Theme -->
-      <div class="mb-5">
-        <label class="block text-xs font-medium text-gray-400 mb-3">Tema</label>
-        <div class="flex items-center gap-4">
-          {% for value, label, color in theme_choices %}
-          <label class="flex items-center gap-2 cursor-pointer group">
-            <input type="radio" name="ui_theme" value="{{ value }}"
-                   {% if user.ui_theme == value %}checked{% endif %}
-                   onchange="document.documentElement.setAttribute('data-theme', this.value)"
-                   class="hidden peer">
-            <span class="w-6 h-6 rounded-full border-2 border-surface-border peer-checked:border-primary-400 transition-colors"
-                  style="background:{{ color }}"></span>
-            <span class="text-sm text-gray-300 group-hover:text-white peer-checked:text-white transition-colors">{{ label }}</span>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- Density -->
-      <div class="mb-5">
-        <label class="block text-xs font-medium text-gray-400 mb-3">Densidade</label>
-        <div class="flex items-center gap-4">
-          {% for value, label in density_choices %}
-          <label class="flex items-center gap-2 cursor-pointer group">
-            <input type="radio" name="ui_density" value="{{ value }}"
-                   {% if user.ui_density == value %}checked{% endif %}
-                   onchange="document.documentElement.setAttribute('data-density', this.value)"
-                   class="hidden peer">
-            <span class="w-4 h-4 rounded-full border-2 border-surface-border peer-checked:border-primary-400 peer-checked:bg-primary-400 transition-colors"></span>
-            <span class="text-sm text-gray-300 group-hover:text-white peer-checked:text-white transition-colors">{{ label }}</span>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
-
-      <button type="submit" class="px-5 py-2.5 rounded-lg bg-primary-400 text-dark-900 text-sm font-semibold hover:bg-primary-300 transition-colors">Salvar preferências</button>
     </form>
   </div>
 

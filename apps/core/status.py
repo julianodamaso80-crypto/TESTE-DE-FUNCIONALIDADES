@@ -1,4 +1,3 @@
-import os
 import time
 from django.utils import timezone
 
@@ -8,10 +7,9 @@ def check_database():
     try:
         from django.db import connection
         connection.ensure_connection()
-        latency = round((time.time() - start) * 1000)
-        return {'status': 'operational', 'latency_ms': latency}
+        return {'status': 'operational', 'latency_ms': round((time.time() - start) * 1000)}
     except Exception as e:
-        return {'status': 'outage', 'error': str(e)}
+        return {'status': 'outage', 'error': str(e)[:100]}
 
 
 def check_redis():
@@ -21,43 +19,35 @@ def check_redis():
         import redis
         r = redis.from_url(getattr(settings, 'CELERY_BROKER_URL', 'redis://localhost:6379/0'))
         r.ping()
-        latency = round((time.time() - start) * 1000)
-        return {'status': 'operational', 'latency_ms': latency}
+        return {'status': 'operational', 'latency_ms': round((time.time() - start) * 1000)}
     except Exception:
-        return {'status': 'degraded', 'error': 'Redis offline'}
+        return {'status': 'degraded', 'note': 'Redis offline — usando fallback síncrono'}
 
 
-def check_ai_service():
+def check_ai():
     from django.conf import settings
-    if not getattr(settings, 'ANTHROPIC_API_KEY', '') and not os.environ.get('ANTHROPIC_API_KEY', ''):
-        return {'status': 'degraded', 'note': 'Using mock (no API key)'}
-    return {'status': 'operational', 'note': 'Claude API configured'}
+    if getattr(settings, 'ANTHROPIC_API_KEY', ''):
+        return {'status': 'operational', 'note': 'Claude API configurado'}
+    return {'status': 'degraded', 'note': 'Usando mock (sem ANTHROPIC_API_KEY)'}
 
 
 def get_system_status():
-    db = check_database()
-    redis_status = check_redis()
-    ai = check_ai_service()
     components = {
-        'API & Dashboard': db,
-        'Background Workers': redis_status,
-        'AI Engine': ai,
-        'Test Execution': {'status': 'operational'},
+        'API & Dashboard':    check_database(),
+        'Background Workers': check_redis(),
+        'AI Engine':          check_ai(),
+        'Test Execution':     {'status': 'operational'},
     }
-    all_operational = all(c['status'] == 'operational' for c in components.values())
-    any_outage = any(c['status'] == 'outage' for c in components.values())
-    if all_operational:
-        overall = 'operational'
-        overall_text = 'All Systems Operational'
-    elif any_outage:
-        overall = 'outage'
-        overall_text = 'Partial Outage Detected'
+    statuses = [c['status'] for c in components.values()]
+    if all(s == 'operational' for s in statuses):
+        overall, text = 'operational', 'All Systems Operational'
+    elif any(s == 'outage' for s in statuses):
+        overall, text = 'outage', 'Partial Outage Detected'
     else:
-        overall = 'degraded'
-        overall_text = 'Degraded Performance'
+        overall, text = 'degraded', 'Degraded Performance'
     return {
         'overall': overall,
-        'overall_text': overall_text,
+        'overall_text': text,
         'components': components,
         'checked_at': timezone.now(),
     }

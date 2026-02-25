@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="refresh" content="30">
+  <title>Status — SpriteTest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>body{font-family:'Inter',sans-serif;background:#1a1a1a;color:#f3f4f6}</style>
+</head>
+<body class="min-h-screen" style="background:#1a1a1a">
+  <div class="max-w-3xl mx-auto px-4 py-16">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-12">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#a3e635">
+        <svg class="w-5 h-5" style="color:#1a1a1a" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <span class="font-bold text-white text-xl">Sprite<span style="color:#a3e635">Test</span></span>
+      <span class="ml-auto text-xs" style="color:#6b7280">Status Page</span>
+    </div>
+
+    <!-- Overall status -->
+    {% if status.overall == 'operational' %}
+    <div class="rounded-2xl p-8 mb-8 flex items-center gap-4" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3)">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:rgba(16,185,129,0.2)">
+        <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <div><h1 class="text-2xl font-bold text-white">{{ status.overall_text }}</h1><p class="text-emerald-400 text-sm mt-1">Todos os sistemas funcionando normalmente.</p></div>
+    </div>
+    {% elif status.overall == 'degraded' %}
+    <div class="rounded-2xl p-8 mb-8 flex items-center gap-4" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3)">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:rgba(251,191,36,0.2)">
+        <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      </div>
+      <div><h1 class="text-2xl font-bold text-white">{{ status.overall_text }}</h1><p class="text-amber-400 text-sm mt-1">Alguns sistemas com desempenho reduzido.</p></div>
+    </div>
+    {% else %}
+    <div class="rounded-2xl p-8 mb-8 flex items-center gap-4" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3)">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style="background:rgba(248,113,113,0.2)">
+        <svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </div>
+      <div><h1 class="text-2xl font-bold text-white">{{ status.overall_text }}</h1><p class="text-red-400 text-sm mt-1">Falha parcial detectada em alguns sistemas.</p></div>
+    </div>
+    {% endif %}
+
+    <!-- Components -->
+    <div class="rounded-2xl overflow-hidden mb-8" style="background:#242424;border:1px solid #2e2e2e">
+      <div class="px-6 py-4 border-b" style="border-color:#2e2e2e">
+        <h2 class="font-semibold text-white text-sm">Componentes do Sistema</h2>
+      </div>
+      {% for name, info in status.components.items %}
+      <div class="flex items-center justify-between px-6 py-4 {% if not forloop.last %}border-b{% endif %}" style="border-color:#2e2e2e">
+        <div>
+          <p class="text-sm font-medium text-white">{{ name }}</p>
+          {% if info.note %}<p class="text-xs mt-0.5" style="color:#6b7280">{{ info.note }}</p>{% endif %}
+          {% if info.error %}<p class="text-xs mt-0.5 text-red-400">{{ info.error }}</p>{% endif %}
+        </div>
+        <div class="flex items-center gap-3">
+          {% if info.latency_ms %}<span class="text-xs" style="color:#6b7280">{{ info.latency_ms }}ms</span>{% endif %}
+          {% if info.status == 'operational' %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style="background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Operational
+          </span>
+          {% elif info.status == 'degraded' %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style="background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Degraded
+          </span>
+          {% else %}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Outage
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Footer -->
+    <div class="flex items-center justify-between text-xs" style="color:#6b7280">
+      <span>Atualizado em {{ status.checked_at|date:"d/m/Y H:i" }} UTC · Auto-refresh 30s</span>
+      <a href="/status.json" style="color:#a3e635" class="hover:underline">status.json</a>
+    </div>
+  </div>
+</body>
+</html>

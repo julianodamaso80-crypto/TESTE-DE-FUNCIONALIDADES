@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="dark" data-theme="{{ ui_theme }}" data-density="{{ ui_density }}">
+<html lang="pt-br" data-theme="{{ ui_theme|default:'dark' }}" data-density="{{ ui_density|default:'comfortable' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,12 +16,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
-  [data-theme="dark"] { --bg-main: #1a1a1a; --bg-card: #242424; --bg-sidebar: #1e1e1e; --border: #2e2e2e; }
-  [data-theme="darker"] { --bg-main: #111111; --bg-card: #1a1a1a; --bg-sidebar: #141414; --border: #252525; }
-  [data-theme="midnight"] { --bg-main: #090e1a; --bg-card: #0f172a; --bg-sidebar: #0d1424; --border: #1e293b; }
-  [data-density="compact"] { --spacing-card: 1rem; --spacing-gap: 0.75rem; }
-  [data-density="comfortable"] { --spacing-card: 1.5rem; --spacing-gap: 1rem; }
-  [data-density="spacious"] { --spacing-card: 2rem; --spacing-gap: 1.5rem; }
+  :root { --bg-main:#1a1a1a;--bg-card:#242424;--bg-sidebar:#1e1e1e;--border-color:#2e2e2e; }
+  [data-theme="darker"] { --bg-main:#111111;--bg-card:#1a1a1a;--bg-sidebar:#141414;--border-color:#252525; }
+  [data-theme="midnight"] { --bg-main:#090e1a;--bg-card:#0f172a;--bg-sidebar:#0d1424;--border-color:#1e293b; }
+  [data-density="compact"] body { font-size:13px; }
+  [data-density="spacious"] .card { padding:2rem; }
+  body { background-color: var(--bg-main) !important; }
   </style>
 
   {% block extra_head %}{% endblock %}

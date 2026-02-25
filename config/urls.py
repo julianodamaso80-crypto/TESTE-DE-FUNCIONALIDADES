@@ -21,8 +21,8 @@ urlpatterns = [
     path('billing/', include('apps.billing.urls', namespace='billing')),
 ]
 
-handler404 = 'apps.core.views.error_404'
-handler500 = 'apps.core.views.error_500'
+handler404 = 'apps.core.views.handler404'
+handler500 = 'apps.core.views.handler500'
 
 urlpatterns += [
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
