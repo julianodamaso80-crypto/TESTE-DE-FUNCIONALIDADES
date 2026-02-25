@@ -153,4 +153,11 @@ def simulate_test_execution(test_run):
     ])
 
     logger.info("TestRun %s completed: %s (pass rate: %s%%)", test_run.id, test_run.status, test_run.pass_rate)
+
+    try:
+        from apps.workspaces.notifications import send_run_notifications
+        send_run_notifications(test_run)
+    except Exception as e:
+        logging.getLogger('spritetest').warning(f"Notification failed: {e}")
+
     return test_run

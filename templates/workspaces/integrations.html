@@ -1,0 +1,90 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Integrações{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl space-y-6">
+
+  <!-- Slack -->
+  <div class="card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-[#4A154B] flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5.042 15.165a2.528 2.528 0 01-2.52 2.523A2.528 2.528 0 010 15.165a2.527 2.527 0 012.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 012.521-2.52 2.527 2.527 0 012.521 2.52v6.313A2.528 2.528 0 018.834 24a2.528 2.528 0 01-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 01-2.521-2.52A2.528 2.528 0 018.834 0a2.528 2.528 0 012.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 012.521 2.521 2.528 2.528 0 01-2.521 2.521H2.522A2.528 2.528 0 010 8.834a2.528 2.528 0 012.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 012.522-2.521A2.528 2.528 0 0124 8.834a2.528 2.528 0 01-2.522 2.521h-2.522V8.834zm-1.27 0a2.528 2.528 0 01-2.523 2.521 2.527 2.527 0 01-2.52-2.521V2.522A2.527 2.527 0 0115.163 0a2.528 2.528 0 012.523 2.522v6.312zM15.163 18.956a2.528 2.528 0 012.523 2.522A2.528 2.528 0 0115.163 24a2.527 2.527 0 01-2.52-2.522v-2.522h2.52zm0-1.27a2.527 2.527 0 01-2.52-2.523 2.527 2.527 0 012.52-2.52h6.315A2.528 2.528 0 0124 15.163a2.528 2.528 0 01-2.522 2.523h-6.315z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-white">Slack</h2>
+        <p class="text-xs text-gray-500">Receba notificações de test runs no Slack</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <div>
+          <label for="slack_webhook_url" class="block text-sm font-medium text-gray-300 mb-1">Webhook URL</label>
+          <input type="url"
+                 name="slack_webhook_url"
+                 id="slack_webhook_url"
+                 value="{{ workspace.slack_webhook_url }}"
+                 placeholder="https://hooks.slack.com/services/T.../B.../..."
+                 class="input-field w-full">
+          <p class="mt-1 text-xs text-gray-500">
+            Crie um webhook em
+            <a href="https://api.slack.com/messaging/webhooks" target="_blank" rel="noopener"
+               class="text-primary-400 hover:underline">api.slack.com/messaging/webhooks</a>
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="submit" class="btn-primary text-sm">Salvar</button>
+          <button type="submit" name="test_slack" value="1" class="btn-secondary text-sm">Testar Slack</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Discord -->
+  <div class="card">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-9 h-9 rounded-lg bg-[#5865F2] flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-white">Discord</h2>
+        <p class="text-xs text-gray-500">Receba notificações de test runs no Discord</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <!-- Preserve slack value -->
+      <input type="hidden" name="slack_webhook_url" value="{{ workspace.slack_webhook_url }}">
+      <div class="space-y-4">
+        <div>
+          <label for="discord_webhook_url" class="block text-sm font-medium text-gray-300 mb-1">Webhook URL</label>
+          <input type="url"
+                 name="discord_webhook_url"
+                 id="discord_webhook_url"
+                 value="{{ workspace.discord_webhook_url }}"
+                 placeholder="https://discord.com/api/webhooks/..."
+                 class="input-field w-full">
+          <p class="mt-1 text-xs text-gray-500">
+            No Discord: Server Settings → Integrations → Webhooks →
+            <a href="https://support.discord.com/hc/en-us/articles/228383668" target="_blank" rel="noopener"
+               class="text-primary-400 hover:underline">Documentação</a>
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="submit" class="btn-primary text-sm">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

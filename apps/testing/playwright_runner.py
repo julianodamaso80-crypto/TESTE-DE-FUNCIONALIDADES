@@ -199,3 +199,9 @@ def run_playwright_sync(test_run) -> None:
     )
     test_run.save(update_fields=['status', 'completed_at', 'duration_secs', 'ai_summary'])
     logger.info(f"Playwright concluído: run={test_run.id} pass_rate={test_run.pass_rate}%")
+
+    try:
+        from apps.workspaces.notifications import send_run_notifications
+        send_run_notifications(test_run)
+    except Exception as e:
+        logging.getLogger('spritetest').warning(f"Notification failed: {e}")

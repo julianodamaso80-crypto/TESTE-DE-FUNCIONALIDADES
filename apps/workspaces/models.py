@@ -66,6 +66,10 @@ class Workspace(models.Model):
     max_members = models.IntegerField(default=3)
     max_projects = models.IntegerField(default=2)
 
+    # Integrações (Slack / Discord)
+    slack_webhook_url = models.URLField(blank=True, default='')
+    discord_webhook_url = models.URLField(blank=True, default='')
+
     # Billing (preparado mas não implementado ainda)
     stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
     stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True)
