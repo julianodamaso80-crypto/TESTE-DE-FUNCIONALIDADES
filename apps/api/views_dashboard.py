@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.core.analytics import track
 from .models import APIKey
 
 
@@ -20,6 +21,7 @@ def api_key_create(request):
             messages.error(request, 'Nome obrigatório')
             return redirect('api:keys_list')
         api_key, raw_key = APIKey.generate(request.workspace, request.user, name)
+        track(str(request.user.id), 'api_key_created', {})
         return render(request, 'api/key_created.html', {
             'api_key': api_key, 'raw_key': raw_key,
         })

@@ -6,6 +6,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.core.analytics import track
 from .ai_service import generate_test_cases
 from .executor import run_test_execution_smart
 from .forms import TestProjectForm
@@ -58,6 +59,12 @@ def new_test(request):
 
             run.total_cases = len(test_cases)
             run.save(update_fields=['total_cases'])
+
+            track(str(request.user.id), 'test_run_created', {
+                'test_type': project.test_type,
+                'total_cases': run.total_cases,
+                'workspace_plan': request.workspace.plan,
+            })
 
             messages.success(request, f'{len(test_cases)} test cases generated for "{project.name}".')
             return redirect('testing:run_detail', run_id=run.id)
@@ -113,6 +120,11 @@ def execute_run(request, run_id):
         # Redis offline: fallback síncrono
         run_test_execution_smart(run)
         messages.success(request, f'Execução concluída: {run.pass_rate}% pass rate')
+
+    track(str(request.user.id), 'test_run_executed', {
+        'pass_rate': run.pass_rate,
+        'status': run.status,
+    })
 
     return redirect('testing:run_detail', run_id=run.id)
 
@@ -193,6 +205,8 @@ def toggle_share(request, run_id):
     run = get_object_or_404(TestRun, id=run_id, project__workspace=request.workspace)
     run.is_public = not run.is_public
     run.save(update_fields=['is_public'])
+    if run.is_public:
+        track(str(request.user.id), 'run_shared_public', {'run_id': str(run.id)})
     messages.success(request, f"Link público {'ativado' if run.is_public else 'desativado'}")
     return redirect('testing:run_detail', run_id=run_id)
 

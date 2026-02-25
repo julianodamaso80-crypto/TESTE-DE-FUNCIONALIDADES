@@ -33,3 +33,10 @@ def create_personal_workspace(sender, instance, created, **kwargs):
             workspace=workspace,
             role=WorkspaceRole.OWNER,
         )
+
+        from apps.core.analytics import identify, track
+        try:
+            identify(str(instance.id), {'email': instance.email, 'plan': 'free'})
+            track(str(instance.id), 'user_signed_up', {})
+        except Exception:
+            pass
