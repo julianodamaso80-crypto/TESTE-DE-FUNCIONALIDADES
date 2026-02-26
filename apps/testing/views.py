@@ -6,6 +6,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from django_ratelimit.decorators import ratelimit
 from apps.core.analytics import track
 from .ai_service import generate_test_cases
 from .executor import run_test_execution_smart
@@ -107,6 +108,7 @@ def run_detail(request, run_id):
 
 
 @login_required
+@ratelimit(key='user', rate='10/m', block=True)
 def execute_run(request, run_id):
     """POST only: executa testes via Celery (async) ou fallback síncrono."""
     if request.method != 'POST':

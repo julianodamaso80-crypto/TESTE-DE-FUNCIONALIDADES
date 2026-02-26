@@ -23,6 +23,7 @@ urlpatterns = [
 
 handler404 = 'apps.core.views.handler404'
 handler500 = 'apps.core.views.handler500'
+handler429 = 'apps.core.views.handler429'
 
 urlpatterns += [
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

@@ -2,9 +2,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 
 @login_required
+@ratelimit(key='ip', rate='20/m', block=True)
 def onboarding(request):
     """Fluxo de onboarding pós-registro com stepper de 3 passos."""
     user = request.user

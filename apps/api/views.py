@@ -1,4 +1,6 @@
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -8,6 +10,7 @@ from apps.testing.models import TestCase, TestProject, TestRun
 from .serializers import CreateTestSerializer, TestProjectSerializer, TestRunSerializer
 
 
+@method_decorator(ratelimit(key='user', rate='60/m', block=True), name='dispatch')
 class ProjectListView(APIView):
     def get(self, request):
         projects = TestProject.objects.filter(
@@ -16,6 +19,7 @@ class ProjectListView(APIView):
         return Response(TestProjectSerializer(projects, many=True).data)
 
 
+@method_decorator(ratelimit(key='user', rate='60/m', block=True), name='dispatch')
 class CreateTestView(APIView):
     def post(self, request):
         s = CreateTestSerializer(data=request.data)

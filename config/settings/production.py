@@ -25,6 +25,8 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_AGE = 1209600
+SESSION_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host]
 
 # Static files via Whitenoise
@@ -35,14 +37,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 CELERY_BROKER_URL = os.environ.get('REDIS_URL', '')
 CELERY_RESULT_BACKEND = 'django-db'
 
-# Email (Railway injeta via variáveis)
+# Email (SMTP via Resend)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.resend.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'resend')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@spritetest.com')
 
 # Logs estruturados
 LOGGING = {

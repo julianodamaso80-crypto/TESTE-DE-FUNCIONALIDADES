@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.conf import settings
 
+from django_ratelimit.decorators import ratelimit
 from apps.core.analytics import track
 from .stripe_service import create_checkout_session, create_portal_session, handle_webhook
 from .models import StripeEvent
@@ -24,6 +25,7 @@ def pricing(request):
 
 
 @login_required
+@ratelimit(key='ip', rate='5/m', block=True)
 def checkout(request, plan):
     track(str(request.user.id), 'upgrade_initiated', {'plan': plan})
 
