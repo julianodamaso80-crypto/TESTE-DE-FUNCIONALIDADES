@@ -25,6 +25,23 @@
 </div>
 {% endif %}
 {% endif %}
+{% if run.failed_cases > 0 %}
+<form method="post" action="{% url 'testing:rerun_failed' run_id=run.id %}" style="display:inline">
+  {% csrf_token %}
+  <button type="submit" class="btn-secondary flex items-center gap-2 text-sm">
+    <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+    </svg>
+    Re-executar {{ run.failed_cases }} falho(s)
+  </button>
+</form>
+{% endif %}
+{% if previous_run %}
+<a href="{% url 'testing:run_compare' run_id_a=previous_run.id run_id_b=run.id %}" class="btn-ghost text-sm flex items-center gap-2">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+  Comparar com anterior
+</a>
+{% endif %}
 {% if run.status == 'pending' %}
 <form method="post" action="{% url 'testing:execute_run' run_id=run.id %}">
   {% csrf_token %}

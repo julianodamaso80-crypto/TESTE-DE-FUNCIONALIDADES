@@ -94,9 +94,15 @@ def run_detail(request, run_id):
         key = case.category or 'General'
         categories[key].append(case)
 
+    previous_run = TestRun.objects.filter(
+        project=run.project,
+        created_at__lt=run.created_at,
+    ).order_by('-created_at').first()
+
     return render(request, 'testing/run_detail.html', {
         'run': run,
         'categories': dict(categories),
+        'previous_run': previous_run,
     })
 
 
@@ -286,6 +292,69 @@ def schedule_create(request, project_id):
     return render(request, 'testing/schedule_form.html', {
         'project': project,
         'frequencies': ScheduleFrequency.choices,
+    })
+
+
+@login_required
+@require_POST
+def rerun_failed(request, run_id):
+    """Cria novo run com apenas os casos falhos do run original."""
+    original_run = get_object_or_404(TestRun, id=run_id, project__workspace=request.workspace)
+    failed_cases = original_run.cases.filter(status='failed')
+    if not failed_cases.exists():
+        messages.warning(request, 'Nenhum teste falho para re-executar.')
+        return redirect('testing:run_detail', run_id=run_id)
+
+    new_run = TestRun.objects.create(
+        project=original_run.project,
+        triggered_by=request.user,
+        status='pending',
+        total_cases=failed_cases.count(),
+        passed_cases=0,
+        failed_cases=0,
+        ai_summary=f'Re-run de falhos do run {str(original_run.id)[:8]}',
+    )
+    for case in failed_cases:
+        TestCase.objects.create(
+            run=new_run,
+            title=case.title,
+            description=case.description,
+            category=case.category,
+            steps=case.steps,
+            status='pending',
+            order=case.order,
+        )
+    try:
+        from .tasks import run_test_execution
+        run_test_execution.delay(str(new_run.id))
+        new_run.celery_task_id = 'queued'
+        new_run.save(update_fields=['celery_task_id'])
+    except Exception:
+        run_test_execution_smart(new_run)
+    messages.success(request, f'Re-executando {failed_cases.count()} teste(s) falho(s).')
+    return redirect('testing:run_detail', run_id=new_run.id)
+
+
+@login_required
+def run_compare(request, run_id_a, run_id_b):
+    """Compara dois runs lado a lado."""
+    run_a = get_object_or_404(TestRun, id=run_id_a, project__workspace=request.workspace)
+    run_b = get_object_or_404(TestRun, id=run_id_b, project__workspace=request.workspace)
+    cases_a = {c.title: c for c in run_a.cases.all()}
+    cases_b = {c.title: c for c in run_b.cases.all()}
+    all_names = sorted(set(list(cases_a.keys()) + list(cases_b.keys())))
+    comparison = []
+    for name in all_names:
+        ca = cases_a.get(name)
+        cb = cases_b.get(name)
+        changed = ca and cb and ca.status != cb.status
+        comparison.append({'name': name, 'run_a': ca, 'run_b': cb, 'changed': changed})
+    fixed = sum(1 for c in comparison if c['run_a'] and c['run_b'] and c['run_a'].status == 'failed' and c['run_b'].status == 'passed')
+    regressed = sum(1 for c in comparison if c['run_a'] and c['run_b'] and c['run_a'].status == 'passed' and c['run_b'].status == 'failed')
+    return render(request, 'testing/run_compare.html', {
+        'run_a': run_a, 'run_b': run_b,
+        'comparison': comparison,
+        'fixed': fixed, 'regressed': regressed,
     })
 
 

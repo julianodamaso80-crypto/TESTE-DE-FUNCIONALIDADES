@@ -1,0 +1,120 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block page_title %}Comparação de Runs{% endblock %}
+
+{% block content %}
+
+<!-- Header with run badges -->
+<div class="card mb-6">
+  <h2 class="text-lg font-semibold text-white mb-4">Comparação de Runs</h2>
+  <div class="flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-400">Run A:</span>
+      <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-300 border border-gray-700">
+        {{ run_a.id|truncatechars:12 }}
+      </span>
+      <span class="text-xs {% if run_a.pass_rate >= 80 %}text-emerald-400{% elif run_a.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %} font-semibold">
+        {{ run_a.pass_rate }}%
+      </span>
+      <span class="text-xs text-gray-500">{{ run_a.created_at|date:"d/m/Y H:i" }}</span>
+    </div>
+    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+    </svg>
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-gray-400">Run B:</span>
+      <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-300 border border-gray-700">
+        {{ run_b.id|truncatechars:12 }}
+      </span>
+      <span class="text-xs {% if run_b.pass_rate >= 80 %}text-emerald-400{% elif run_b.pass_rate >= 50 %}text-amber-400{% else %}text-red-400{% endif %} font-semibold">
+        {{ run_b.pass_rate }}%
+      </span>
+      <span class="text-xs text-gray-500">{{ run_b.created_at|date:"d/m/Y H:i" }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+  <div class="card text-center">
+    <p class="text-sm text-gray-400 mb-1">Corrigidos</p>
+    <p class="text-3xl font-bold text-emerald-400">{{ fixed }}</p>
+  </div>
+  <div class="card text-center">
+    <p class="text-sm text-gray-400 mb-1">Regredidos</p>
+    <p class="text-3xl font-bold text-red-400">{{ regressed }}</p>
+  </div>
+</div>
+
+<!-- Comparison table -->
+{% if comparison %}
+<div class="card !p-0 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-surface-border">
+          <th class="text-left px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Nome do Teste</th>
+          <th class="text-center px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Run A</th>
+          <th class="text-center px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Run B</th>
+          <th class="text-center px-4 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Mudança</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-surface-border">
+        {% for item in comparison %}
+        <tr class="{% if item.changed %}bg-amber-950/20{% endif %}">
+          <td class="px-4 py-3 text-gray-200">{{ item.name }}</td>
+          <td class="px-4 py-3 text-center">
+            {% if item.run_a %}
+              {% if item.run_a.status == 'passed' %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300 border border-emerald-800/50">Passed</span>
+              {% elif item.run_a.status == 'failed' %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/40 text-red-300 border border-red-800/50">Failed</span>
+              {% else %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700">{{ item.run_a.status|title }}</span>
+              {% endif %}
+            {% else %}
+              <span class="text-xs text-gray-600">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% if item.run_b %}
+              {% if item.run_b.status == 'passed' %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-900/40 text-emerald-300 border border-emerald-800/50">Passed</span>
+              {% elif item.run_b.status == 'failed' %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/40 text-red-300 border border-red-800/50">Failed</span>
+              {% else %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700">{{ item.run_b.status|title }}</span>
+              {% endif %}
+            {% else %}
+              <span class="text-xs text-gray-600">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-center">
+            {% if item.run_a and item.run_b and item.run_a.status == 'failed' and item.run_b.status == 'passed' %}
+              <span class="text-emerald-400 text-xs font-medium">Corrigido</span>
+            {% elif item.run_a and item.run_b and item.run_a.status == 'passed' and item.run_b.status == 'failed' %}
+              <span class="text-red-400 text-xs font-medium">Regrediu</span>
+            {% else %}
+              <span class="text-gray-600 text-xs">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card text-center py-12">
+  <p class="text-gray-400">Runs idênticos — sem diferenças encontradas.</p>
+</div>
+{% endif %}
+
+<!-- Back link -->
+<div class="mt-6">
+  <a href="{% url 'testing:project_detail' project_id=run_b.project.id %}" class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+    &larr; Voltar ao Projeto
+  </a>
+</div>
+
+{% endblock %}
