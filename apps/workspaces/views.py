@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -134,14 +133,24 @@ def invite_member(request):
             f'/workspace/invite/accept/{inv.token}/'
         )
         try:
-            send_mail(
-                f'Convite para {workspace.name} no SpriteTest',
-                f'Você foi convidado para {workspace.name}.\n'
-                f'Acesse: {invite_url}\nExpira em 7 dias.',
-                django_settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=True,
+            from django.core.mail import EmailMultiAlternatives
+            from django.template.loader import render_to_string
+
+            context = {
+                'invited_by': request.user.display_name or request.user.email,
+                'workspace_name': workspace.name,
+                'invite_url': invite_url,
+            }
+            text_body = f"Você foi convidado para {workspace.name}.\nAcesse: {invite_url}"
+            html_body = render_to_string('emails/invite.html', context)
+            msg = EmailMultiAlternatives(
+                subject=f'Convite para {workspace.name} no SpriteTest',
+                body=text_body,
+                from_email=django_settings.DEFAULT_FROM_EMAIL,
+                to=[email],
             )
+            msg.attach_alternative(html_body, "text/html")
+            msg.send(fail_silently=True)
         except Exception:
             pass
 

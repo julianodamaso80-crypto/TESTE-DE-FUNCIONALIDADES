@@ -1,0 +1,17 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+{% if run_passed %}
+<h1 style="font-size:22px;font-weight:700;color:#fff;margin:0 0 8px">✅ Testes passaram</h1>
+{% else %}
+<h1 style="font-size:22px;font-weight:700;color:#fff;margin:0 0 8px">❌ Falhas detectadas</h1>
+{% endif %}
+<p style="color:#9ca3af;margin:0 0 24px">Resultado para o projeto <strong style="color:#fff">{{ project_name }}</strong></p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+  <div class="stat"><p class="stat-value">{{ pass_rate }}%</p><p class="stat-label">Pass Rate</p></div>
+  <div class="stat"><p class="stat-value" style="color:#34d399">{{ passed_cases }}</p><p class="stat-label">Passou</p></div>
+  <div class="stat"><p class="stat-value" style="color:#f87171">{{ failed_cases }}</p><p class="stat-label">Falhou</p></div>
+</div>
+<a href="{{ run_url }}" class="btn">Ver Relatório Completo</a>
+<hr class="divider">
+<p style="font-size:12px;color:#6b7280">URL testada: {{ project_url }}</p>
+{% endblock %}

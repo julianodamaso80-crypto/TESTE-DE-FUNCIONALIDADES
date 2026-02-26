@@ -1,0 +1,13 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h1 style="font-size:22px;font-weight:700;color:#fff;margin:0 0 8px">Você foi convidado! 🎉</h1>
+<p style="color:#9ca3af;margin:0 0 24px">{{ invited_by }} te convidou para participar do workspace <strong style="color:#fff">{{ workspace_name }}</strong> no SpriteTest.</p>
+<div style="background:#1a1a1a;border:1px solid #2e2e2e;border-radius:8px;padding:16px;margin-bottom:24px">
+  <p style="margin:0;font-size:13px;color:#6b7280">Workspace</p>
+  <p style="margin:4px 0 0;font-weight:600;color:#fff">{{ workspace_name }}</p>
+</div>
+<a href="{{ invite_url }}" class="btn">Aceitar Convite</a>
+<hr class="divider">
+<p style="font-size:12px;color:#6b7280">Este convite expira em 7 dias. Se não esperava este email, pode ignorá-lo.</p>
+<p style="font-size:12px;color:#4b5563;word-break:break-all">Ou copie: {{ invite_url }}</p>
+{% endblock %}

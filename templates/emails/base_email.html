@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{margin:0;padding:0;background:#1a1a1a;font-family:'Inter',Arial,sans-serif;color:#f3f4f6}
+.wrapper{max-width:600px;margin:0 auto;padding:40px 20px}
+.card{background:#242424;border:1px solid #2e2e2e;border-radius:12px;padding:40px}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+.logo-icon{width:36px;height:36px;background:#a3e635;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-size:20px;font-weight:700;color:#fff}
+.logo-accent{color:#a3e635}
+.btn{display:inline-block;padding:12px 28px;background:#a3e635;color:#1a1a1a;font-weight:600;font-size:14px;border-radius:8px;text-decoration:none}
+.divider{border:none;border-top:1px solid #2e2e2e;margin:24px 0}
+.footer{text-align:center;color:#6b7280;font-size:12px;margin-top:32px}
+.badge-success{display:inline-block;padding:4px 10px;background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3);border-radius:999px;font-size:12px;font-weight:500}
+.badge-error{display:inline-block;padding:4px 10px;background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);border-radius:999px;font-size:12px;font-weight:500}
+.stat{background:#1a1a1a;border:1px solid #2e2e2e;border-radius:8px;padding:16px;text-align:center}
+.stat-value{font-size:24px;font-weight:700;color:#fff;margin:0}
+.stat-label{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;margin-top:4px}
+</style></head>
+<body><div class="wrapper">
+<div class="card">
+<div class="logo">
+  <div class="logo-icon"><svg width="20" height="20" fill="none" stroke="#1a1a1a" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+  <span class="logo-text">Sprite<span class="logo-accent">Test</span></span>
+</div>
+{% block content %}{% endblock %}
+</div>
+<div class="footer">
+  <p>&copy; 2025 SpriteTest &middot; <a href="https://spritetest.io" style="color:#a3e635">spritetest.io</a></p>
+  <p style="margin-top:8px">Voc&ecirc; recebeu este email porque tem uma conta no SpriteTest.</p>
+</div>
+</div></body></html>
