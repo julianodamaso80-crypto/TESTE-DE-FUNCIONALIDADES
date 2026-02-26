@@ -9,4 +9,6 @@ urlpatterns = [
     path('health/', views.health_check, name='health_check'),
     path('status/', views.status_page, name='status_page'),
     path('status.json', views.status_api, name='status_api'),
+    path('privacy/', views.privacy, name='privacy'),
+    path('terms/', views.terms, name='terms'),
 ]

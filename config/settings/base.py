@@ -14,6 +14,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Load environment variables from .env file
 load_dotenv(BASE_DIR / '.env')
 
+# Sentry
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-CHANGE-ME-IN-PRODUCTION')
 
@@ -37,6 +40,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'rest_framework',
+    'drf_spectacular',
     # Local apps
     'apps.core',
     'apps.accounts',
@@ -180,6 +184,20 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {'anon': '20/hour', 'user': '200/hour'},
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SpriteTest API',
+    'DESCRIPTION': 'REST API para integração CI/CD com o SpriteTest — AI Testing Platform.\n\nAutenticação via Bearer token: `Authorization: Bearer spt_...`',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'CONTACT': {'email': 'hello@spritetest.io'},
+    'LICENSE': {'name': 'Proprietary'},
+    'TAGS': [
+        {'name': 'Projects', 'description': 'Gerenciar projetos de teste'},
+        {'name': 'Runs', 'description': 'Executar e consultar test runs'},
+    ],
 }
 
 from celery.schedules import crontab  # noqa: E402
@@ -249,3 +267,7 @@ CACHES = {
 RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = 'default'
 RATELIMIT_FAIL_OPEN = False
+
+# Sentry initialization
+from config.sentry import init_sentry  # noqa: E402
+init_sentry()

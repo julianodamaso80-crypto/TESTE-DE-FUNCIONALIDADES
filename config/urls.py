@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import TemplateView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from apps.core.sitemaps import StaticViewSitemap, PricingSitemap
 
@@ -17,6 +18,9 @@ urlpatterns = [
     path('workspace/', include('apps.workspaces.urls', namespace='workspaces')),
     path('accounts/', include('apps.accounts.urls', namespace='accounts')),
     path('testing/', include('apps.testing.urls', namespace='testing')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('api/', include('apps.api.urls', namespace='api')),
     path('billing/', include('apps.billing.urls', namespace='billing')),
 ]

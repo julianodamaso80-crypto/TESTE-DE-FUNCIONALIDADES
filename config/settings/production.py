@@ -3,8 +3,9 @@ import dj_database_url
 import os
 
 DEBUG = False
+ENVIRONMENT = 'production'
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'spritetest.io,www.spritetest.io').split(',')
 
 # Railway injeta DATABASE_URL automaticamente
 DATABASES = {
@@ -27,7 +28,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_AGE = 1209600
 SESSION_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host]
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://spritetest.io,https://www.spritetest.io').split(',')
 
 # Static files via Whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

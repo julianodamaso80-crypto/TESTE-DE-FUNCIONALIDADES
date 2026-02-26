@@ -47,6 +47,14 @@ def status_api(request):
     })
 
 
+def privacy(request):
+    return render(request, 'core/legal/privacy.html')
+
+
+def terms(request):
+    return render(request, 'core/legal/terms.html')
+
+
 def handler404(request, exception):
     return render(request, '404.html', status=404)
 
