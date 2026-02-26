@@ -22,6 +22,12 @@ def new_test(request):
         messages.error(request, 'Selecione um workspace primeiro.')
         return redirect('dashboard:home')
 
+    from apps.workspaces.quota import check_quota
+    quota = check_quota(workspace, 'projects')
+    if quota['exceeded']:
+        messages.error(request, f'Limite de {quota["limit"]} {quota["label"]} atingido. Faça upgrade para continuar.')
+        return redirect('billing:pricing')
+
     if request.method == 'POST':
         form = TestProjectForm(request.POST)
         if form.is_valid():
@@ -120,6 +126,12 @@ def execute_run(request, run_id):
         id=run_id,
         project__workspace=workspace,
     )
+
+    from apps.workspaces.quota import check_quota
+    quota = check_quota(workspace, 'runs')
+    if quota['exceeded']:
+        messages.error(request, f'Limite de {quota["limit"]} {quota["label"]} atingido este mês. Faça upgrade para continuar.')
+        return redirect('billing:pricing')
 
     try:
         from .tasks import run_test_execution

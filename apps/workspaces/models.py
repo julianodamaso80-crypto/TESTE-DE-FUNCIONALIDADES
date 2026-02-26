@@ -83,6 +83,10 @@ class Workspace(models.Model):
         related_name='workspaces',
     )
 
+    # Quota tracking
+    runs_this_month = models.PositiveIntegerField(default=0)
+    runs_reset_at = models.DateTimeField(null=True, blank=True)
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

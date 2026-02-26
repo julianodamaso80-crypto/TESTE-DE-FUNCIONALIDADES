@@ -27,8 +27,12 @@ def home(request):
     trend_chart = []
     failing = []
 
+    quota_usage = {}
+    quota_limits = {}
+
     if workspace:
         from apps.testing.models import TestRun
+        from apps.workspaces.quota import get_workspace_usage
 
         stats = get_summary_stats(workspace)
         runs_chart = get_runs_last_30_days(workspace)
@@ -37,6 +41,8 @@ def home(request):
         recent_runs = TestRun.objects.filter(
             project__workspace=workspace
         ).select_related('project').order_by('-created_at')[:8]
+        quota_usage = get_workspace_usage(workspace)
+        quota_limits = workspace.get_plan_limits()
 
     return render(request, 'dashboard/home.html', {
         'stats': stats,
@@ -44,6 +50,8 @@ def home(request):
         'runs_chart_json': json.dumps(runs_chart),
         'trend_chart_json': json.dumps(trend_chart),
         'failing_projects': failing,
+        'quota_usage': quota_usage,
+        'quota_limits': quota_limits,
     })
 
 

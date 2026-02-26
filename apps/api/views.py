@@ -22,6 +22,14 @@ class ProjectListView(APIView):
 @method_decorator(ratelimit(key='user', rate='60/m', block=True), name='dispatch')
 class CreateTestView(APIView):
     def post(self, request):
+        from apps.workspaces.quota import check_quota
+        quota = check_quota(request.workspace, 'runs')
+        if quota['exceeded']:
+            return Response(
+                {'detail': f'Quota excedida: {quota["limit"]} runs/mês no plano atual.'},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         s = CreateTestSerializer(data=request.data)
         if not s.is_valid():
             return Response(s.errors, status=status.HTTP_400_BAD_REQUEST)

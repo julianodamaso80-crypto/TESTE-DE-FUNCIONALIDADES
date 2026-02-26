@@ -90,6 +90,46 @@
 
 </div>
 
+<!-- Quota Usage Bar (Free plan) -->
+{% if workspace.plan == 'free' %}
+<div class="card mb-6">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-sm font-semibold text-white">Uso do Plano Free</h3>
+    <a href="{% url 'billing:pricing' %}" class="text-xs text-primary-400 hover:text-primary-300">Fazer upgrade &rarr;</a>
+  </div>
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <div class="flex justify-between text-xs mb-1">
+        <span class="text-gray-400">Runs este m&ecirc;s</span>
+        <span class="text-white">{{ quota_usage.runs_this_month }}/{{ quota_limits.runs }}</span>
+      </div>
+      <div class="h-1.5 rounded-full" style="background:#2e2e2e">
+        {% widthratio quota_usage.runs_this_month quota_limits.runs 100 as pct %}
+        <div class="h-1.5 rounded-full transition-all {% if pct|add:'0' > 90 %}bg-red-400{% elif pct|add:'0' > 70 %}bg-amber-400{% else %}bg-primary-400{% endif %}" style="width:{% widthratio quota_usage.runs_this_month quota_limits.runs 100 %}%"></div>
+      </div>
+    </div>
+    <div>
+      <div class="flex justify-between text-xs mb-1">
+        <span class="text-gray-400">Projetos</span>
+        <span class="text-white">{{ quota_usage.total_projects }}/{{ quota_limits.projects }}</span>
+      </div>
+      <div class="h-1.5 rounded-full" style="background:#2e2e2e">
+        <div class="h-1.5 rounded-full bg-primary-400 transition-all" style="width:{% widthratio quota_usage.total_projects quota_limits.projects 100 %}%"></div>
+      </div>
+    </div>
+    <div>
+      <div class="flex justify-between text-xs mb-1">
+        <span class="text-gray-400">Membros</span>
+        <span class="text-white">{{ quota_usage.total_members }}/{{ quota_limits.members }}</span>
+      </div>
+      <div class="h-1.5 rounded-full" style="background:#2e2e2e">
+        <div class="h-1.5 rounded-full bg-primary-400 transition-all" style="width:{% widthratio quota_usage.total_members quota_limits.members 100 %}%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Charts Row -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
